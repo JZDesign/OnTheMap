@@ -7,7 +7,6 @@
 //
 
 import Foundation
-//import FacebookLogin
 
 class Client: NSObject {
     // MARK: Properties

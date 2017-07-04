@@ -43,9 +43,9 @@ class StudentLocation {
     
     init(studentLocation: [String: Any]) {
         self.objectId = studentLocation["objectId"] as? String
-        self.uniqueKey = studentLocation["uniqueKey"] as? String
-        self.firstName = studentLocation["firstName"] as? String
-        self.lastName = studentLocation["lastName"] as? String
+        self.uniqueKey = studentLocation["key"] as? String
+        self.firstName = studentLocation["first_name"] as? String
+        self.lastName = studentLocation["last_name"] as? String
         self.mapString = studentLocation["mapString"] as? String
         self.mediaURL = studentLocation["mediaURL"] as? String
         self.latitude = studentLocation["latitude"] as? Float
@@ -64,10 +64,6 @@ class StudentLocation {
             //"https://parse.udacity.com/parse/classes/StudentLocation?limit=200")
         let request = URLRequest(url: url!)
 
-        // Update this part to get locations from URL not a local file.
-        // let file = Bundle.main.path(forResource: "Location", ofType: "json")
-        //let data = try? Data(contentsOf: URL(fileURLWithPath: file!))
-       
         return Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 0, completionHandlerForGET:  completion)
         
     }

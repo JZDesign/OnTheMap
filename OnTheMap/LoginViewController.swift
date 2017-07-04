@@ -7,6 +7,7 @@
 //
 
 import UIKit
+//import FacebookLogin
 
 class LoginViewController: UIViewController {
     @IBOutlet var userIDTextField: UITextField!
@@ -144,7 +145,7 @@ class LoginViewController: UIViewController {
             } else {
                 let user = results?["user"] as! [String : Any]
                 var myUser = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
-                
+                print(myUser.firstName,myUser.lastName,myUser.uniqueKey)
             }
             
         })
