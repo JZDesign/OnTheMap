@@ -10,6 +10,10 @@ import Foundation
 class StudentLocation {
     
     
+   
+    
+    // Student Location attributes
+    
     var objectId: String?
     var uniqueKey: String?
     var firstName: String?
@@ -51,28 +55,21 @@ class StudentLocation {
     
     // get data
     
-    static func downloadJSON() -> [StudentLocation]
+    static func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
     {
-        var locations = [StudentLocation]()
+        
         var session = URLSession.shared
         var studentData: [String:AnyObject] = [:]
-        let url = URL(string: "https://parse.udacity.com/parse/classes/StudentLocation?limit=200")
+        let url = URL(string: "https:parse.udacity.com/parse/classes/StudentLocation")
+            //"https://parse.udacity.com/parse/classes/StudentLocation?limit=200")
         let request = URLRequest(url: url!)
 
         // Update this part to get locations from URL not a local file.
         // let file = Bundle.main.path(forResource: "Location", ofType: "json")
         //let data = try? Data(contentsOf: URL(fileURLWithPath: file!))
-        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 0) { (result, error) in
-            
-            let locationsDict = result?["results"] as! [[String : Any]]
-            
-            for item in locationsDict {
-                let newLocation = StudentLocation(studentLocation: item)
-                locations.append(newLocation)
-            }
-
-        }
-                return locations
+       
+        return Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 0, completionHandlerForGET:  completion)
+        
     }
     
 }

@@ -12,10 +12,25 @@ class LoginViewController: UIViewController {
     @IBOutlet var userIDTextField: UITextField!
     @IBOutlet var passwordTextField: UITextField!
     var session = URLSession.shared
+    
+    
 
     override func viewDidLoad() {
         
         super.viewDidLoad()
+        
+        var locations = [StudentLocation]()
+        StudentLocation.downloadJSON({ (result, error) in
+            //print("Results from downloadJSON: \(result)")
+            let locationsDict = result?["results"] as! [[String : Any]]
+            for item in locationsDict {
+                let newLocation = StudentLocation(studentLocation: item)
+                locations.append(newLocation)
+            }
+            //print(locations)
+        })
+
+        
 
         //let student = StudentLocation.init(objectId: "", uniqueKey: Client.Constants.UserSession.accountKey, firstName: "Jacob", lastName: "Rakidzich", mapString: "Delavan, WI 53115", mediaURL: "https//Udacity.com", latitude: 42.6331, longitude: -88.6437, createdAt: NSDate.init(timeIntervalSinceNow: 0)    )
         //print(student.firstName!,student.lastName!,student.mapString!)
@@ -97,11 +112,6 @@ class LoginViewController: UIViewController {
             }
             print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
             
-            // try to get locations 
-            // WORKING
-            // let students = StudentLocation.downloadJSON()
-            // print(students)
-            
             self.getMyUser()
             
             /*
@@ -127,14 +137,14 @@ class LoginViewController: UIViewController {
     }
     
     func getMyUser() {
-        let url3 = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)/account")
-        print(url3)
-        //let jsonBody3 = "{\"\(Client.Constants.UserSession.accountKey)\"}"
-        Client.sharedInstance().taskForGETMethod(url3!, jsonBody: "", truncatePrefix: 0, completionHandlerForGET:  {(results, error) in
+        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
+        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
             if let error = error {
                 print(error)
             } else {
-                print(results)
+                let user = results?["user"] as! [String : Any]
+                var myUser = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
+                
             }
             
         })

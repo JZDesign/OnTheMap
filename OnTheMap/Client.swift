@@ -7,6 +7,7 @@
 //
 
 import Foundation
+//import FacebookLogin
 
 class Client: NSObject {
     // MARK: Properties
@@ -31,13 +32,34 @@ class Client: NSObject {
     // MARK: GET
     
     func taskForGETMethod(_ url: URL, jsonBody: String, truncatePrefix: Int, completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        let request = NSMutableURLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-        if jsonBody != "" {
+        //let request = NSMutableURLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
+        
+        let request = NSMutableURLRequest(url: url)
+        request.httpMethod = "GET"
+        let urlstring = url.absoluteString
+        if (urlstring.range(of: "api.udacity") != nil)   {
+            // if loging in
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
+            
+            print("Request: \(request)")
+        } else {
+            // if requesting to post data to the parse api
+            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
+            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
+            
+            print("Request: \(request)")
         }
+        
+        
         return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForGET)
+        
+            
+        
+
     }
     
     // MARK: POST
