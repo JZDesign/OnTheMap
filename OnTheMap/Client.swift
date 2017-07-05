@@ -42,7 +42,6 @@ class Client: NSObject {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
-            print("Request: \(request)")
         } else {
             // if requesting to post data to the parse api
             request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
@@ -50,7 +49,6 @@ class Client: NSObject {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
-            print("Request: \(request)")
         }
         
         
@@ -61,24 +59,6 @@ class Client: NSObject {
 
     }
     
-    // MARK: POST
-    /*
-    func taskForPostMethod(_ method: String, parameters: [String:AnyObject], jsonBody: String, completionHandlerForPOST: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        /* 1. Set the parameters */
-        var parametersWithApiKey = parameters
-        parametersWithApiKey[Constants.ParameterKeys.APIKey] = Constants.ParameterValues.APIKey as AnyObject?
-        
-        /* 2/3. Build the URL, Configure the request */
-        let request = NSMutableURLRequest(url: Client.udacityURLFromParameters(parametersWithApiKey, withPathExtension: method))
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-        
-        return doRequestWithCompletion(request, completion: completionHandlerForPOST)
-    }
- 
- */
     
     // MARK:  POST
     
@@ -99,7 +79,6 @@ class Client: NSObject {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
-            print("Request: \(request)")
         } else {
             // if requesting to post data to the parse api
             request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
@@ -107,7 +86,6 @@ class Client: NSObject {
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
-            print("Request: \(request)")
         }
        
         
@@ -117,54 +95,6 @@ class Client: NSObject {
     }
 
     
-    // MARK: GET Image
-    /*
-    func taskForGETImage(_ size: String, filePath: String, completionHandlerForImage: @escaping (_ imageData: Data?, _ error: NSError?) -> Void) -> URLSessionTask {
-        
-        /* 1. Set the parameters */
-        // There are none...
-        
-        /* 2/3. Build the URL and configure the request */
-        let baseURL = URL(string: config.baseImageURLString)!
-        let url = baseURL.appendingPathComponent(size).appendingPathComponent(filePath)
-        let request = URLRequest(url: url)
-        /* 4. Make the request */
-        let task = session.dataTask(with: request) { (data, response, error) in
-            
-            func sendError(_ error: String) {
-                print(error)
-                let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForImage(nil, NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
-            }
-            
-            /* GUARD: Was there an error? */
-            guard (error == nil) else {
-                sendError("There was an error with your request: \(error!)")
-                return
-            }
-            
-            /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx!")
-                return
-            }
-            
-            /* GUARD: Was there any data returned? */
-            guard let data = data else {
-                sendError("No data was returned by the request!")
-                return
-            }
-            
-            /* 5/6. Parse the data and use the data (happens in completion handler) */
-            completionHandlerForImage(data, nil)
-        }
-        
-        /* 7. Start the request */
-        task.resume()
-        
-        return task
-    }
- */
     
     
     // MARK: Helpers
@@ -237,7 +167,6 @@ class Client: NSObject {
             let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON: '\(data)'"]
             completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
-        print(parsedResult)
         completionHandlerForConvertData(parsedResult, nil)
     }
     

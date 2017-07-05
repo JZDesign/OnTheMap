@@ -7,18 +7,23 @@
 //
 
 import UIKit
-//import FacebookLogin
+import FacebookLogin
+import FacebookCore
 
-class LoginViewController: UIViewController {
+class LoginViewController: UIViewController, LoginButtonDelegate {
     @IBOutlet var userIDTextField: UITextField!
     @IBOutlet var passwordTextField: UITextField!
     var session = URLSession.shared
     
     
 
+    // MARK: LIFECYLE
+    
     override func viewDidLoad() {
         
         super.viewDidLoad()
+        
+        
         
         var locations = [StudentLocation]()
         StudentLocation.downloadJSON({ (result, error) in
@@ -32,19 +37,63 @@ class LoginViewController: UIViewController {
         })
 
         
-
-        //let student = StudentLocation.init(objectId: "", uniqueKey: Client.Constants.UserSession.accountKey, firstName: "Jacob", lastName: "Rakidzich", mapString: "Delavan, WI 53115", mediaURL: "https//Udacity.com", latitude: 42.6331, longitude: -88.6437, createdAt: NSDate.init(timeIntervalSinceNow: 0)    )
-        //print(student.firstName!,student.lastName!,student.mapString!)
+        // Facebook
+        // set requested permissions
+        let loginButton = LoginButton(readPermissions: [ .publicProfile ])
+        // set delegate
+        loginButton.delegate = self
+        //center near bottom
+        loginButton.center = CGPoint(x: view.bounds.width / 2, y: view.bounds.height - loginButton.bounds.height * 2)
+        // display button
+        view.addSubview(loginButton)
+        
+        if let token = FBSDKAccessToken.current() {
+            //fetchProfile()
+        }
         
     }
-   
+
     
-  
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
     
+    
+    
+    // MARK: Facebook Delegate
+    
+    func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
+        //getMyUser()
+        print(result)
+        
+        FBSDKGraphRequest(graphPath: "token", parameters: ["fields": "\(Client.Constants.LoginResponseKeys.FBAuthToken)"]).start { (connection, result, error) -> Void in
+            if error != nil {
+                print(error)
+                return
+            }
+            let results = result as! [String : Any]
+            if let auth = results[Client.Constants.LoginResponseKeys.FBAuthToken] as? String {
+                print(auth)
+            }
+        }
+        
+        FBSDKGraphRequest(graphPath: "me", parameters: ["fields": " \(Client.Constants.LoginResponseKeys.FBUserId)"]).start { (connection, result, error) -> Void in
+            if error != nil{
+                print(error)
+                return
+            }
+            let results = result as! [String : Any]
+            if let userID = results["userID"] as? String{
+                print(userID)
+            }
+            
+        }
+    }
+    
+    func loginButtonDidLogOut(_ loginButton: LoginButton) {
+        // todo
+    }
 
     /*
     private func getRequestToken(_ completionHandlerForToken: @escaping (_ success: Bool, _ requestToken: String?, _ errorString: String?) -> Void) {
@@ -82,6 +131,14 @@ class LoginViewController: UIViewController {
         // Pass the selected object to the new view controller.
     }
     */
+    
+    // MARK: Buttons
+    
+    @IBAction func doSignUp(_ sender: Any) {
+    }
+    
+    
+    
     @IBAction func doLogInButton(_ sender: Any) {
         
         // set parameters

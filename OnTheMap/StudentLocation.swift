@@ -57,13 +57,8 @@ class StudentLocation {
     
     static func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
     {
-        
-        var session = URLSession.shared
-        var studentData: [String:AnyObject] = [:]
         let url = URL(string: "https:parse.udacity.com/parse/classes/StudentLocation")
             //"https://parse.udacity.com/parse/classes/StudentLocation?limit=200")
-        let request = URLRequest(url: url!)
-
         return Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 0, completionHandlerForGET:  completion)
         
     }

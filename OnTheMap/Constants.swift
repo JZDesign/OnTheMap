@@ -68,6 +68,11 @@ extension Client {
             static let Registered = "registered"
             static let Key = "key"
             
+            // MARK: Facebook
+            
+            static let FBUserId = "userId"
+            static let FBAuthToken = "authenticationToken"
+            
             // MARK: Session
             static let SessionID = "session"
             static let ID = "id"
@@ -81,6 +86,11 @@ extension Client {
             static var accountKey = ""
             static var sessionID = ""
             static var sessionExpires = ""
+            
+            // fb
+            
+            static var userId = ""
+            static var fbAuthToken = ""
             
         }
         
