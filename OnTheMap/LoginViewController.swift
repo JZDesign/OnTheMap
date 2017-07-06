@@ -22,20 +22,10 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     override func viewDidLoad() {
         
         super.viewDidLoad()
-        
-        
-        
-        var locations = [StudentLocation]()
-        StudentLocation.downloadJSON({ (result, error) in
-            //print("Results from downloadJSON: \(result)")
-            let locationsDict = result?["results"] as! [[String : Any]]
-            for item in locationsDict {
-                let newLocation = StudentLocation(studentLocation: item)
-                locations.append(newLocation)
-            }
-            //print(locations)
-        })
 
+        
+        // get locations
+        Client.sharedInstance().getLocations()
         
         // Facebook
         // set requested permissions
@@ -47,10 +37,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         // display button
         view.addSubview(loginButton)
         
-        if let token = FBSDKAccessToken.current() {
-            //fetchProfile()
-        }
-        
+        checkFB()
     }
 
     
@@ -61,34 +48,38 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     
     
     
+    // MARK: Facebook Helper
+    
+    func checkFB() {
+        if let token = FBSDKAccessToken.current() {
+            
+            // TODO:
+            //fetchProfile()
+            
+            
+            let url = URL(string: "https://www.udacity.com/api/session")
+            
+            let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
+            
+            
+            Client.sharedInstance().taskForPostMethod(url: url!, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost: { (result, error) in
+                if error != nil {
+                    print(error)
+                }
+                self.getKey(result as! [String : AnyObject])
+                self.getMyUser()
+            })
+        }
+
+    }
+    
     // MARK: Facebook Delegate
     
     func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
         //getMyUser()
         print(result)
-        
-        FBSDKGraphRequest(graphPath: "token", parameters: ["fields": "\(Client.Constants.LoginResponseKeys.FBAuthToken)"]).start { (connection, result, error) -> Void in
-            if error != nil {
-                print(error)
-                return
-            }
-            let results = result as! [String : Any]
-            if let auth = results[Client.Constants.LoginResponseKeys.FBAuthToken] as? String {
-                print(auth)
-            }
-        }
-        
-        FBSDKGraphRequest(graphPath: "me", parameters: ["fields": " \(Client.Constants.LoginResponseKeys.FBUserId)"]).start { (connection, result, error) -> Void in
-            if error != nil{
-                print(error)
-                return
-            }
-            let results = result as! [String : Any]
-            if let userID = results["userID"] as? String{
-                print(userID)
-            }
-            
-        }
+        print("Token:", FBSDKAccessToken.current().tokenString)
+        checkFB()
     }
     
     func loginButtonDidLogOut(_ loginButton: LoginButton) {
@@ -135,6 +126,9 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     // MARK: Buttons
     
     @IBAction func doSignUp(_ sender: Any) {
+        if let url = URL(string: "https://auth.udacity.com/sign-up?next=https%3A%2F%2Fclassroom.udacity.com%2Fauthenticated"){
+            UIApplication.shared.openURL(url)
+        }
     }
     
     
@@ -149,7 +143,8 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         
         // json for log in credentials pulling from text fields.
         let jsonBody = "{\"\(Client.Constants.LoginKeys.Udacity)\": {\"\(Client.Constants.LoginKeys.Username)\":\"\(userIDTextField.text as! String)\", \"\(Client.Constants.LoginKeys.Password)\":\"\(passwordTextField.text as! String)\"}}"
-        
+        //let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginKeys.Udacity : [ Client.Constants.LoginKeys.Username: userIDTextField.text as AnyObject] [Client.Constants.LoginKeys.Password : ]] as [String:[String:AnyObject]] )
+
         // call task for post with url and jsonBody to get the log in results.
         Client.sharedInstance().taskForPostMethod(url: url, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost:{ (results, error) in
             
@@ -157,16 +152,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             if let error = error {
                 print(error)
             } else {
-                if let accountID = results? [Client.Constants.LoginResponseKeys.AccountID]  as? [String:AnyObject] {
-                    Client.Constants.UserSession.accountKey = accountID[Client.Constants.LoginResponseKeys.Key] as! String
-                } else {
-                    print("Failed to get account key")
-                }
-                if let sessionID = results? [Client.Constants.LoginResponseKeys.SessionID] as? [String:AnyObject] {
-                    Client.Constants.UserSession.sessionID = sessionID[Client.Constants.LoginResponseKeys.ID] as! String
-                } else {
-                    print("Failed to get session ID")
-                }
+                self.getKey(results as! [String : AnyObject])
             }
             print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
             
@@ -192,6 +178,19 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             
         }) // end completionHandlerForPost
         
+    }
+    
+    func getKey(_ results: [String:AnyObject] ) {
+        if let accountID = results[Client.Constants.LoginResponseKeys.AccountID]  as? [String:AnyObject] {
+            Client.Constants.UserSession.accountKey = accountID[Client.Constants.LoginResponseKeys.Key] as! String
+        } else {
+            print("Failed to get account key")
+        }
+        if let sessionID = results[Client.Constants.LoginResponseKeys.SessionID] as? [String:AnyObject] {
+            Client.Constants.UserSession.sessionID = sessionID[Client.Constants.LoginResponseKeys.ID] as! String
+        } else {
+            print("Failed to get session ID")
+        }
     }
     
     func getMyUser() {

@@ -22,10 +22,23 @@ class Client: NSObject {
     var sessionID : String? = nil
     var userID : Int? = nil
     
+    // locations
+    var locations = [StudentLocation]()
+    
     // MARK: Initializers
     
     override init() {
         super.init()
+    }
+    
+    
+    
+    // MARK: MAKE JSON
+    func makeJSON(_ jsonBody: [String:[String:AnyObject]]) -> String {
+        
+        let json = try? JSONSerialization.data(withJSONObject: jsonBody, options: .prettyPrinted)
+        let dataString = NSString(data: json!, encoding: String.Encoding.utf8.rawValue)
+        return dataString as! String
     }
     
     // MARK: GET
@@ -57,6 +70,21 @@ class Client: NSObject {
             
         
 
+    }
+    
+    // GET LOCATIONS
+    
+    func getLocations() {
+        
+        StudentLocation.downloadJSON({ (result, error) in
+            //print("Results from downloadJSON: \(result)")
+            let locationsDict = result?["results"] as! [[String : Any]]
+            for item in locationsDict {
+                let newLocation = StudentLocation(studentLocation: item)
+                self.locations.append(newLocation)
+            }
+            print(self.locations)
+        })
     }
     
     
@@ -130,7 +158,8 @@ class Client: NSObject {
             
             /* GUARD: Did we get a successful 2XX response? */
             guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx!")
+                sendError("Your request returned a status code other than 2xx! Response: \(response as? HTTPURLResponse)?.statusCode)")
+                
                 return
             }
             

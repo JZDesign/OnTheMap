@@ -71,7 +71,9 @@ extension Client {
             // MARK: Facebook
             
             static let FBUserId = "userId"
-            static let FBAuthToken = "authenticationToken"
+            static let FBAuthToken = "access_token"
+            static let FBMobile = "facebook_mobile"
+            
             
             // MARK: Session
             static let SessionID = "session"

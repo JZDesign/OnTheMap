@@ -15,6 +15,7 @@
 		4278363D1F096488002B9215 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4278363C1F096488002B9215 /* Constants.swift */; };
 		427836401F097B75002B9215 /* StudentLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4278363F1F097B75002B9215 /* StudentLocation.swift */; };
 		427836421F0990FE002B9215 /* Client.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427836411F0990FE002B9215 /* Client.swift */; };
+		427F9A941F0ED579003DB0CC /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F9A931F0ED579003DB0CC /* MapViewController.swift */; };
 		478A0985A7A9BCEAF82A441C /* Pods_OnTheMap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 967FB36EC4D2EC85CA0A5585 /* Pods_OnTheMap.framework */; };
 /* End PBXBuildFile section */
 
@@ -33,6 +34,7 @@
 		427F9A901F0C8270003DB0CC /* OnTheMap-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "OnTheMap-Bridging-Header.h"; sourceTree = "<group>"; };
 		427F9A911F0C8270003DB0CC /* FBHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FBHeader.h; sourceTree = "<group>"; };
 		427F9A921F0C9093003DB0CC /* OnTheMap.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OnTheMap.entitlements; sourceTree = "<group>"; };
+		427F9A931F0ED579003DB0CC /* MapViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
 		94F8DEA3B0F5BECB63926762 /* Pods-OnTheMap.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OnTheMap.release.xcconfig"; path = "Pods/Target Support Files/Pods-OnTheMap/Pods-OnTheMap.release.xcconfig"; sourceTree = "<group>"; };
 		967FB36EC4D2EC85CA0A5585 /* Pods_OnTheMap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_OnTheMap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -112,6 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				427836371F095C89002B9215 /* LoginViewController.swift */,
+				427F9A931F0ED579003DB0CC /* MapViewController.swift */,
 			);
 			name = Controller;
 			sourceTree = "<group>";
@@ -266,6 +269,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				427836401F097B75002B9215 /* StudentLocation.swift in Sources */,
+				427F9A941F0ED579003DB0CC /* MapViewController.swift in Sources */,
 				427836381F095C89002B9215 /* LoginViewController.swift in Sources */,
 				427836261F05DF0F002B9215 /* AppDelegate.swift in Sources */,
 				427836421F0990FE002B9215 /* Client.swift in Sources */,
