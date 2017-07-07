@@ -20,15 +20,15 @@ class StudentLocation {
     var lastName: String?
     var mapString: String?
     var mediaURL: String?
-    var latitude: Float?
-    var longitude: Float?
+    var latitude: Double?
+    var longitude: Double?
     var createdAt: NSDate?
     //var ACL
     
     
     //initialize
     
-    init(objectId: String, uniqueKey: String, firstName: String, lastName: String, mapString: String, mediaURL: String, latitude: Float, longitude: Float, createdAt: NSDate) {
+    init(objectId: String, uniqueKey: String, firstName: String, lastName: String, mapString: String, mediaURL: String, latitude: Double, longitude: Double, createdAt: NSDate) {
         self.objectId = objectId
         self.uniqueKey = uniqueKey
         self.firstName = firstName
@@ -44,12 +44,12 @@ class StudentLocation {
     init(studentLocation: [String: Any]) {
         self.objectId = studentLocation["objectId"] as? String
         self.uniqueKey = studentLocation["key"] as? String
-        self.firstName = studentLocation["first_name"] as? String
-        self.lastName = studentLocation["last_name"] as? String
+        self.firstName = studentLocation["firstName"] as? String
+        self.lastName = studentLocation["lastName"] as? String
         self.mapString = studentLocation["mapString"] as? String
         self.mediaURL = studentLocation["mediaURL"] as? String
-        self.latitude = studentLocation["latitude"] as? Float
-        self.longitude = studentLocation["longitude"] as? Float
+        self.latitude = studentLocation["latitude"] as? Double
+        self.longitude = studentLocation["longitude"] as? Double
         self.createdAt = studentLocation["createdAt"] as? NSDate
     }
     

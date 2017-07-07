@@ -24,6 +24,7 @@ class Client: NSObject {
     
     // locations
     var locations = [StudentLocation]()
+    var myinfo: StudentLocation? = nil
     
     // MARK: Initializers
     
@@ -81,11 +82,28 @@ class Client: NSObject {
             let locationsDict = result?["results"] as! [[String : Any]]
             for item in locationsDict {
                 let newLocation = StudentLocation(studentLocation: item)
+                //print(item)
                 self.locations.append(newLocation)
             }
-            print(self.locations)
+            //print(self.locations)
         })
     }
+
+    // MARK: GET MY USER INFO
+    func getMyUser() {
+        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
+        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
+            if let error = error {
+                print(error)
+            } else {
+                let user = results?["user"] as! [String : Any]
+                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
+            }
+            
+        })
+        
+    }
+
     
     
     // MARK:  POST

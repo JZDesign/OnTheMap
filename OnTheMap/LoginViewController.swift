@@ -67,7 +67,11 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
                     print(error)
                 }
                 self.getKey(result as! [String : AnyObject])
-                self.getMyUser()
+                Client.sharedInstance().getMyUser()
+                
+                self.performSegue(withIdentifier: "DidLogIn", sender: self)
+                
+
             })
         }
 
@@ -156,8 +160,8 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             }
             print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
             
-            self.getMyUser()
-            
+            Client.sharedInstance().getMyUser()
+            self.performSegue(withIdentifier: "DidLogIn", sender: self)
             /*
                 // post location test 
              // WORKING
@@ -193,19 +197,4 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         }
     }
     
-    func getMyUser() {
-        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
-        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
-            if let error = error {
-                print(error)
-            } else {
-                let user = results?["user"] as! [String : Any]
-                var myUser = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
-                print(myUser.firstName,myUser.lastName,myUser.uniqueKey)
-            }
-            
-        })
-
-    }
-
 }
