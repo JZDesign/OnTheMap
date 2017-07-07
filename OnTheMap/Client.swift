@@ -34,6 +34,9 @@ class Client: NSObject {
     
     
     
+    
+    
+    
     // MARK: MAKE JSON
     func makeJSON(_ jsonBody: [String:[String:AnyObject]]) -> String {
         
@@ -41,6 +44,12 @@ class Client: NSObject {
         let dataString = NSString(data: json!, encoding: String.Encoding.utf8.rawValue)
         return dataString as! String
     }
+    
+    
+    
+    
+    
+    
     
     // MARK: GET
     
@@ -58,53 +67,18 @@ class Client: NSObject {
             
         } else {
             // if requesting to post data to the parse api
+            
             request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
             request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
         }
         
-        
         return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForGET)
-        
-            
-        
 
     }
-    
-    // GET LOCATIONS
-    
-    func getLocations() {
-        
-        StudentLocation.downloadJSON({ (result, error) in
-            //print("Results from downloadJSON: \(result)")
-            let locationsDict = result?["results"] as! [[String : Any]]
-            for item in locationsDict {
-                let newLocation = StudentLocation(studentLocation: item)
-                //print(item)
-                self.locations.append(newLocation)
-            }
-            //print(self.locations)
-        })
-    }
-
-    // MARK: GET MY USER INFO
-    func getMyUser() {
-        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
-        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
-            if let error = error {
-                print(error)
-            } else {
-                let user = results?["user"] as! [String : Any]
-                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
-            }
-            
-        })
-        
-    }
-
-    
     
     // MARK:  POST
     
@@ -115,7 +89,7 @@ class Client: NSObject {
     //  -> truncatePrefix used for the Udacity Log in with a value of 5 to pass their security technique
     // completion handler to handle the result or error via passthroughs.
     func taskForPostMethod(url: URL, jsonBody: String, truncatePrefix: Int, completionHandlerForPost: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-
+        
         let request = NSMutableURLRequest(url: url)
         request.httpMethod = "POST"
         let urlstring = url.absoluteString
@@ -133,13 +107,103 @@ class Client: NSObject {
             request.httpBody = jsonBody.data(using: String.Encoding.utf8)
             
         }
-       
         
+        print(request)
         return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForPost)
         
         
     }
+    
+    
+    //
+    
+    func taskForPut(url: URL, jsonBody: String, completionHandlerForPut: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask {
+        let request = NSMutableURLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = jsonBody.data(using: String.Encoding.utf8)
+        return doRequestWithCompletion(request, truncatePrefix: 0, completion: completionHandlerForPut)
+    }
+    
+    
+    func taskForDelete(url: URL, jsonBody: String, completionHandlerForDelete: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+    
+        let request = NSMutableURLRequest(url: url)
+        request.httpMethod = "DELETE"
+        let urlstring = url.absoluteString
+        
+        if (urlstring.range(of: "api.udacity") != nil)   {
+            // if loging in
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            var xsrfCookie: HTTPCookie? = nil
+            let sharedCookieStorage = HTTPCookieStorage.shared
+            for cookie in sharedCookieStorage.cookies! {
+                if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+            }
+            if let xsrfCookie = xsrfCookie {
+                request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
+            }
+            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
+        
+        } else {
+            // if requesting to post data to the parse api
+            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
+            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
+        
+        }
+        
+        print(request)
+        return doRequestWithCompletion(request, truncatePrefix: 0, completion: completionHandlerForDelete)
+    
+    
+    }
+    
+    
+    
+    
+    
+    
+    // GET LOCATIONS
+    
+    func getLocations() {
+        locations.removeAll()
+        StudentLocation.downloadJSON({ (result, error) in
+        let locationsDict = result?["results"] as! [[String : Any]]
+        for item in locationsDict {
+            let newLocation = StudentLocation(studentLocation: item)
+            self.locations.append(newLocation)
+            }
+        
+        })
+    }
 
+    
+    
+    
+    
+    
+    // MARK: GET MY USER INFO
+    func getMyUser() {
+        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
+        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
+            if let error = error {
+                print(error)
+            } else {
+                let user = results?["user"] as! [String : Any]
+                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
+            }
+            
+        })
+        
+    }
+
+    
+    
     
     
     
@@ -158,10 +222,10 @@ class Client: NSObject {
     // request - prebuilt when passed in,
     // truncate prefix - remove x from the front of the data before parsing it.
     // completion handler to process result or error via passthroughs
-    private func doRequestWithCompletion(_ request: NSMutableURLRequest, truncatePrefix: Int, completion: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+    func doRequestWithCompletion(_ request: NSMutableURLRequest, truncatePrefix: Int, completion: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
         /* 4. Make the request */
         let task = session.dataTask(with: request as URLRequest) { (data, response, error) in
-            
+            print(request)
             func sendError(_ error: String) {
                 print(error)
                 let userInfo = [NSLocalizedDescriptionKey : error]
@@ -201,8 +265,10 @@ class Client: NSObject {
         
         return task
         
-        
     }
+    
+    
+    
     
     // given raw JSON, return a usable Foundation object
     private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
@@ -217,13 +283,19 @@ class Client: NSObject {
         completionHandlerForConvertData(parsedResult, nil)
     }
     
+    
+    
+    
     // create a URL from parameters
-    class func udacityURLFromParameters(_ parameters: [String:AnyObject], withPathExtension: String? = nil) -> URL {
-        
+
+    class func URLFromParameters(_ scheme: String, _ host: String, _ path: String, withPathExtension: String? = nil, withQuery: String? = nil) -> URL{
+        var parameters = [String:AnyObject]()
         var components = URLComponents()
-        components.scheme = Client.Constants.Udacity.Scheme
-        components.host = Client.Constants.Udacity.Host
-        components.path = Client.Constants.Udacity.Path + (withPathExtension ?? "")
+        components.scheme = scheme
+        components.host = host
+        components.path = path + (withPathExtension ?? "")
+        components.query = (withQuery ?? "")
+        
         components.queryItems = [URLQueryItem]()
         
         for (key, value) in parameters {
@@ -233,6 +305,9 @@ class Client: NSObject {
         
         return components.url!
     }
+    
+    
+    
     
     //MARK: SHARED INSTANCE
     

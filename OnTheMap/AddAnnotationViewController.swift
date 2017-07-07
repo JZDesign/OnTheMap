@@ -25,6 +25,12 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     var latitude: Double = 0.0
     var longitude: Double = 0.0
     
+    var userPinExists = false
+    var userPins = [StudentLocation]()
+    
+    
+    let urlParse = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation)
+    
     @IBOutlet var shareButton: UIBarButtonItem!
     @IBOutlet var findLocationView: UIView!
     @IBOutlet var searchByTextButton: UIBarButtonItem!
@@ -35,6 +41,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        findUserAnnotation()
     
 
         // Do any additional setup after loading the view.
@@ -113,28 +120,80 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             self.pinAnnotationView = MKPinAnnotationView(annotation: self.pointAnnotation, reuseIdentifier: nil)
             self.mapView.centerCoordinate = self.pointAnnotation.coordinate
             // store location
-            self.latitude = (self.pinAnnotationView.annotation?.coordinate.latitude)!
-            self.longitude = (self.pinAnnotationView.annotation?.coordinate.longitude)!
-            
+            //self.latitude = (self.pinAnnotationView.annotation?.coordinate.latitude)!
+            //self.longitude = (self.pinAnnotationView.annotation?.coordinate.longitude)!
+            Client.sharedInstance().myinfo?.mapString = searchBar.text
             self.mapView.addAnnotation(self.pinAnnotationView.annotation!)
         }
     }
     
     
-    // MARK: Alert
+    // MARK: Post
     
+    func findUserAnnotation() {
+        // method to locate any annotations by a given uniqueKey and delete them
+        let url = URL(string:"https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(Client.Constants.UserSession.accountKey )%22%7D")
+        let jsonBody = "where:{\"uniqueKey\":\"\(Client.Constants.UserSession.accountKey as! String)\"}"
+        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 0) { (result, error) in
+            if error != nil {
+                print(error)
+            }
+            print("######### FIND USER ###### \(result?["results"])")
+            /*if let userPins = result?["results"] as? [[String:AnyObject]]{
+                for pin in userPins {
+                    let item = StudentLocation.init(objectId: pin["objectId"] as! String, uniqueKey: pin["uniqueKey"] as! String, firstName: pin["firstName"] as! String, lastName: pin["lastName"] as! String, mapString: pin["mapString"] as! String, mediaURL: pin["mediaURL"] as! String, latitude: pin["latitude"] as! Double, longitude: pin["longitude"] as! Double, createdAt: NSDate(timeIntervalSinceNow: 0))
+                    self.userPins?.append(item)
+                }
+            }*/
+            let locationsDict = result?["results"] as! [[String : Any]]
+            for item in locationsDict {
+                let newLocation = StudentLocation(studentLocation: item)
+                //print(item)
+                self.userPins.append(newLocation)
+            }
 
-    
-    // MARK: Buttons
-    
-    @IBAction func doDoneButton(_ sender: Any) {
-        //stop updating location
-        self.locationManager.stopUpdatingLocation()
-        // store lat long data
-        if annotation.coordinate.latitude != nil {
-            latitude = annotation.coordinate.latitude
-            longitude = annotation.coordinate.longitude
+            if self.userPins.count > 0 {
+                self.userPinExists = true
+            }
         }
+    }
+    
+    
+    
+    // MARK: PIN GET SET DESTROY REPLACE
+    
+    // DESTROY PINS FUNCTION TO DELETE USER PINS IN MULTIPLES.
+    func destroyPins() {
+        //
+        
+        for item in userPins {
+            let string = item.uniqueKey!
+            let url = URL(string:"https://parse.udacity.com/parse/users/\(string)")
+            let jsonBody = ""
+            Client.sharedInstance().taskForDelete(url: url!, jsonBody: jsonBody, completionHandlerForDelete: { (result, error) in
+                if error != nil {
+                    print(error?.localizedDescription)
+                }
+                else {
+                    print(result)
+                }
+            })
+        }
+        
+    }
+    
+    func doReplacePin(){
+        let url = URL(string: "https://parse.udacity.com/parse/classes/StudentLocation/\(self.userPins[0].objectId as! String)")
+        let jsonBody = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"\(Client.sharedInstance().myinfo?.firstName as! String)\", \"lastName\": \"\(Client.sharedInstance().myinfo?.lastName  as! String)\",\"mapString\": \"\(Client.sharedInstance().myinfo?.mapString  as! String)\", \"mediaURL\": \"\(Client.sharedInstance().myinfo?.mediaURL  as! String)\",\"latitude\": \(Client.sharedInstance().myinfo?.latitude as! Double), \"longitude\": \(Client.sharedInstance().myinfo?.longitude as! Double)}"
+        Client.sharedInstance().taskForPut(url: url!, jsonBody: jsonBody, completionHandlerForPut:  { (result, error) in
+            if error != nil {
+                print(error)
+            }
+            print(result)
+        })
+    }
+    
+    func doSetPin(_ replacePin: Bool) {
         if latitude != 0.0 && longitude != 0.0 {
             let alert = UIAlertController(title: "You're on the Map!!",
                                           message: "Share a link!",
@@ -142,8 +201,27 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             // Submit button
             let submitAction = UIAlertAction(title: "Submit", style: .default, handler: { (action) -> Void in
                 // Get 1st TextField's text
-                let textField = alert.textFields![0]
-                print(textField.text!)
+                Client.sharedInstance().myinfo?.mediaURL = alert.textFields![0].text
+                Client.sharedInstance().myinfo?.createdAt = NSDate(timeIntervalSinceNow: 0)
+                if replacePin {
+                    self.doReplacePin()
+                } else {
+                    let url = self.urlParse
+                    let jsonBody = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"\(Client.sharedInstance().myinfo?.firstName as! String)\", \"lastName\": \"\(Client.sharedInstance().myinfo?.lastName  as! String)\",\"mapString\": \"\(Client.sharedInstance().myinfo?.mapString  as! String)\", \"mediaURL\": \"\(Client.sharedInstance().myinfo?.mediaURL  as! String)\",\"latitude\": \(Client.sharedInstance().myinfo?.latitude as! Double), \"longitude\": \(Client.sharedInstance().myinfo?.longitude as! Double)}"
+                    
+                    
+                    Client.sharedInstance().taskForPostMethod(url: url, jsonBody: jsonBody, truncatePrefix: 0, completionHandlerForPost:{ (results, error) in
+                        
+                        // Send values to completion handler
+                        if let error = error {
+                            print(error)
+                        } else {
+                            print(results)
+                        }
+                        
+                    }) // end completionHandlerForPost
+                }
+                self.dismiss(animated: true, completion: nil)
             })
             // Cancel button
             let cancel = UIAlertAction(title: "Cancel", style: .default, handler: { (action) -> Void in
@@ -178,6 +256,43 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             alert.addAction(goBack)
             present(alert, animated: true, completion: nil)
         }
+
+    }
+    
+    func doSubmitLocation(_ userPin: Bool){
+        if userPinExists {
+            let alert = UIAlertController(title: "Would you like to overwrite your previously posted location?", message: "NOTE: It may take a minute for the server to update", preferredStyle: .alert)
+            let noAction = UIAlertAction(title: "Nope", style: .default, handler: { (action) in
+                self.dismiss(animated: true, completion: nil)
+            })
+            let overwriteAction = UIAlertAction(title: "Overwrite", style: .destructive, handler: { (action) in
+                //self.destroyPins()
+                self.doSetPin(true)
+            })
+            alert.addAction(noAction)
+            alert.addAction(overwriteAction)
+            present(alert, animated: true, completion: nil)
+        } else {
+            doSetPin(false)
+        }
+        
+    }
+
+    
+    // MARK: Buttons
+    
+    @IBAction func doDoneButton(_ sender: Any) {
+        //stop updating location
+        self.locationManager.stopUpdatingLocation()
+        // store lat long data
+        if annotation?.coordinate.latitude != nil {
+            latitude = annotation.coordinate.latitude
+            longitude = annotation.coordinate.longitude
+            Client.sharedInstance().myinfo?.latitude = latitude
+            Client.sharedInstance().myinfo?.longitude = longitude
+        }
+        
+        doSubmitLocation(userPinExists)
         
         
     }
@@ -200,6 +315,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             self.locationManager.delegate = self
             self.locationManager.desiredAccuracy = kCLLocationAccuracyBest
             self.locationManager.startUpdatingLocation()
+            print(self.locationManager.location.debugDescription)
             mapView.showsUserLocation = true
             
             

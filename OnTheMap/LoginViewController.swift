@@ -14,7 +14,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     @IBOutlet var userIDTextField: UITextField!
     @IBOutlet var passwordTextField: UITextField!
     var session = URLSession.shared
-    
+    let urlUdacity = Client.URLFromParameters(Client.Constants.Udacity.Scheme, Client.Constants.Udacity.Host, Client.Constants.Udacity.Path, withPathExtension: Client.Constants.Methods.Session)
     
 
     // MARK: LIFECYLE
@@ -66,11 +66,11 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         if let token = FBSDKAccessToken.current() {
             
             
-            let url = URL(string: "https://www.udacity.com/api/session")
+            
             
             let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
             
-            Client.sharedInstance().taskForPostMethod(url: url!, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost: { (result, error) in
+            Client.sharedInstance().taskForPostMethod(url: urlUdacity, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost: { (result, error) in
                 if error != nil {
                     print(error)
                 }
@@ -148,15 +148,13 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         // set parameters
         let parameters = [String:AnyObject]()
         
-        // url with Method
-        let url = Client.udacityURLFromParameters(parameters, withPathExtension: Client.Constants.Methods.Session)
-        
+       
         // json for log in credentials pulling from text fields.
         let jsonBody = "{\"\(Client.Constants.LoginKeys.Udacity)\": {\"\(Client.Constants.LoginKeys.Username)\":\"\(userIDTextField.text as! String)\", \"\(Client.Constants.LoginKeys.Password)\":\"\(passwordTextField.text as! String)\"}}"
         //let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginKeys.Udacity : [ Client.Constants.LoginKeys.Username: userIDTextField.text as AnyObject] [Client.Constants.LoginKeys.Password : ]] as [String:[String:AnyObject]] )
 
         // call task for post with url and jsonBody to get the log in results.
-        Client.sharedInstance().taskForPostMethod(url: url, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost:{ (results, error) in
+        Client.sharedInstance().taskForPostMethod(url: urlUdacity, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost:{ (results, error) in
             
             // Send values to completion handler
             if let error = error {
@@ -169,24 +167,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             Client.sharedInstance().getMyUser()
             
             self.doSegue()
-            /*
-                // post location test 
-             // WORKING
-            let url2 = URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")
-            let jsonBody2 = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"John\", \"lastName\": \"Doe\",\"mapString\": \"Mountain View, CA\", \"mediaURL\": \"https://udacity.com\",\"latitude\": 37.386052, \"longitude\": -122.083851}"
-            Client.sharedInstance().taskForPostMethod(url: url2!, jsonBody: jsonBody2, truncatePrefix: 0, completionHandlerForPost:{ (results, error) in
-                
-                // Send values to completion handler
-                if let error = error {
-                    print(error)
-                } else {
-                    print(results)
-                }
-
-            }) // end completionHandlerForPost
-             // end post location test   
-             */
-            
+                       
         }) // end completionHandlerForPost
         
     }

@@ -304,8 +304,16 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="kCc-NC-Yuq">
-                        <barButtonItem key="leftBarButtonItem" image="pin" id="7q1-1r-McT"/>
-                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="e7w-QB-bub"/>
+                        <barButtonItem key="leftBarButtonItem" image="pin" id="7q1-1r-McT">
+                            <connections>
+                                <action selector="doAddLocation:" destination="i2I-Hg-BIn" id="tEj-wg-MSq"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="e7w-QB-bub">
+                            <connections>
+                                <action selector="doReload:" destination="i2I-Hg-BIn" id="fdz-AC-cqu"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="tableView" destination="dXE-5T-F7O" id="AF4-2U-UhU"/>

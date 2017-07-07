@@ -44,6 +44,20 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
 
     }
     
+    @IBAction func doAddLocation(_ sender: Any) {
+        let storyBoard : UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc: AddAnnotationViewController = storyBoard.instantiateViewController(withIdentifier: "AddAnnotation") as! AddAnnotationViewController
+        present(vc , animated: true, completion: nil)
+    }
+    
+    @IBAction func doReload(_ sender: Any) {
+        Client.sharedInstance().getLocations()
+        DispatchQueue.main.async {
+            self.tableView.reloadData()
+        }
+        
+    }
+
     
     
 }
