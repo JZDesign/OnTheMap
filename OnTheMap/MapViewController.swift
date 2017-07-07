@@ -91,15 +91,27 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if pinView == nil {
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = true
-            pinView!.pinColor = .red
+            pinView!.pinTintColor = randomColor()
             pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
         }
         else {
             pinView!.annotation = annotation
         }
+        pinView?.animatesDrop = true
         
         return pinView
     }
+    
+    // random color for pins
+    func randomColor() -> UIColor {
+        //generate truly random RGB values
+        var red =  Float(arc4random()) / Float(UINT32_MAX)
+        var green =  Float(arc4random()) / Float(UINT32_MAX)
+        var blue =  Float(arc4random()) / Float(UINT32_MAX)
+        var color = UIColor.init(red: CGFloat(red), green: CGFloat(green), blue: CGFloat(blue), alpha: 1)
+        return color
+    }
+
     
     
     // This delegate method is implemented to respond to taps. It opens the system browser

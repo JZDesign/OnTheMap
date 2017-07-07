@@ -47,20 +47,28 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     }
     
     
+    // MARK: SEGUE
+    
+    func doSegue() {
+        // Run on main queue to avoid crashing app by calling segue in background
+        DispatchQueue.main.async {
+            self.performSegue(withIdentifier: "DidLogIn", sender: self)
+        }
+        
+    
+        
+    }
+    
     
     // MARK: Facebook Helper
     
     func checkFB() {
         if let token = FBSDKAccessToken.current() {
             
-            // TODO:
-            //fetchProfile()
-            
             
             let url = URL(string: "https://www.udacity.com/api/session")
             
             let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
-            
             
             Client.sharedInstance().taskForPostMethod(url: url!, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost: { (result, error) in
                 if error != nil {
@@ -69,8 +77,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
                 self.getKey(result as! [String : AnyObject])
                 Client.sharedInstance().getMyUser()
                 
-                self.performSegue(withIdentifier: "DidLogIn", sender: self)
-                
+                self.doSegue()
 
             })
         }
@@ -138,7 +145,6 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     
     
     @IBAction func doLogInButton(_ sender: Any) {
-        
         // set parameters
         let parameters = [String:AnyObject]()
         
@@ -161,7 +167,8 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
             
             Client.sharedInstance().getMyUser()
-            self.performSegue(withIdentifier: "DidLogIn", sender: self)
+            
+            self.doSegue()
             /*
                 // post location test 
              // WORKING
