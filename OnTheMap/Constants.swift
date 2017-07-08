@@ -17,6 +17,7 @@ extension Client {
             static let Scheme = "https"
             static let Host = "www.udacity.com"
             static let Path = "/api"
+            static let UserPath = "/users/"
         }
         
         //MARK: PARSE
@@ -25,6 +26,7 @@ extension Client {
             static let Scheme = "https"
             static let Host = "parse.udacity.com"
             static let Path = "/parse/classes"
+            static let UsersPath = "/parse/users/"
             static let UniqueKey = "uniqueKey"
             static let FirstName = "firstName"
             static let LastName = "lastName"

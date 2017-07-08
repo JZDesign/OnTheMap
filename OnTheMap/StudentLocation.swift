@@ -58,8 +58,8 @@ class StudentLocation {
     static func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
     {
         let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation)
-            //"https://parse.udacity.com/parse/classes/StudentLocation?limit=200")
-        return Client.sharedInstance().taskForGETMethod(url, jsonBody: "", truncatePrefix: 0, completionHandlerForGET:  completion)
+            
+        return Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  completion)
         
     }
     

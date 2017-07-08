@@ -19,8 +19,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // fetch locations
-        addAnnotations()
+        
     }
 
     override func didReceiveMemoryWarning() {
@@ -28,24 +27,29 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Dispose of any resources that can be recreated.
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        doReload(self)
+    }
+    
     
     // MARK: HELPER
     
-    func addAnnotations()  {
+    func addAnnotations(_ locations: [StudentLocation])  {
         
         
-        let locations = Client.sharedInstance().locations
+       
          for location in locations {
+            print(location.firstName!,location.lastName!,location.mediaURL!,location.mapString!)
             
             // Notice that the float values are being used to create CLLocationDegree values.
             // This is a version of the Double type.
-            let lat = CLLocationDegrees(location.latitude as! Double)
-            let long = CLLocationDegrees(location.longitude as! Double)
+            let lat = CLLocationDegrees(location.latitude!)
+            let long = CLLocationDegrees(location.longitude!)
             
             // The lat and long are used to create a CLLocationCoordinates2D instance.
             let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
             
-            if let first = location.firstName as? String, let last = location.lastName as? String, let mediaURL = location.mediaURL as? String {
+            if let first = location.firstName, let last = location.lastName , let mediaURL = location.mediaURL {
                 // Here we create the annotation and set its coordiate, title, and subtitle properties
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = coordinate
@@ -66,12 +70,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
 
     func reloadAnnotaions(_ completion: (_ result : AnyObject?,_ Error : NSError?) -> Void) {
-        do {
-            self.mapView.removeAnnotations(annotations)
-            Client.sharedInstance().getLocations()
-        } catch {
-            completion(nil,NSError(domain: "NOPE!", code: 1, userInfo: [NSLocalizedDescriptionKey : "Could not reload pins "]))
-        }
+        
         let locations = Client.sharedInstance().locations
         completion(locations as AnyObject,nil)
         
@@ -148,13 +147,29 @@ class MapViewController: UIViewController, MKMapViewDelegate {
 
     @IBAction func doReload(_ sender: Any) {
         
-        reloadAnnotaions { (result, error) in
-            if error != nil{
-                print(error)
-            }
-            else {
-                addAnnotations()
-            }
+        self.mapView.removeAnnotations(self.annotations)
+        self.annotations.removeAll()
+        
+        DispatchQueue.global(qos: .background).async {
+            Client.sharedInstance().getLocations()
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
+            // remove pins and all annotations from storage and reload data
+
+            self.reloadAnnotaions { (result, error) in
+                if error != nil{
+                    print(error)
+                }
+                else {
+                    //
+                    self.addAnnotations(result as! [StudentLocation])
+                }
+            }
+
+        })
+        
+        
+        
+        
     }
 }

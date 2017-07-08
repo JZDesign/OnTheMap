@@ -13,15 +13,18 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
     // outlet for table
     @IBOutlet weak var tableView: UITableView!
     // array of results
-    var locations = Client.sharedInstance().locations
+    let locations = Client.sharedInstance().locations
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
+        let locations = Client.sharedInstance().locations
         return locations.count
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell{
+        let locations = Client.sharedInstance().locations
+
         // set reuse cell
         let CellID = "Locations"
         let placeholderCell = tableView.dequeueReusableCell(withIdentifier: CellID, for: indexPath)
@@ -51,11 +54,11 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     @IBAction func doReload(_ sender: Any) {
-        Client.sharedInstance().getLocations()
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-        }
         
+        Client.sharedInstance().getLocations()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: { 
+            self.tableView.reloadData()
+        })
     }
 
     

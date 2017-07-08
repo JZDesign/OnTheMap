@@ -65,12 +65,10 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     func checkFB() {
         if let token = FBSDKAccessToken.current() {
             
-            
-            
-            
             let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
             
-            Client.sharedInstance().taskForPostMethod(url: urlUdacity, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost: { (result, error) in
+            Client.sharedInstance().doAllTasks(url: urlUdacity, task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks: { (result, error) in
+            
                 if error != nil {
                     print(error)
                 }
@@ -97,42 +95,6 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         // todo
     }
 
-    /*
-    private func getRequestToken(_ completionHandlerForToken: @escaping (_ success: Bool, _ requestToken: String?, _ errorString: String?) -> Void) {
-        
-        /* 1. Specify parameters, the API method, and the HTTP body (if POST) */
-        let parameters = [String:AnyObject]()
-        taskForGETMethod(Client.Constants.Methods.Session, parameters: parameters) { (results, error) in
-            if let error = error {
-                print(error)
-                completionHandlerForToken(false, nil, "Failed to get token")
-            } else {
-                if let token = results?[TMDBClient.JSONResponseKeys.RequestToken] as? String {
-                    print(token,TMDBClient.JSONResponseKeys.RequestToken)
-                    completionHandlerForToken(true, token, nil)
-                } else {
-                    print("Could not find Request token in '\(results)'")
-                    completionHandlerForToken(false,nil,"Failed to find token")
-                }
-                
-            }
-        }
-        
-    }
- */
-    
-    
-    
-    
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
     
     // MARK: Buttons
     
@@ -148,14 +110,11 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         // set parameters
         let parameters = [String:AnyObject]()
         
-       
         // json for log in credentials pulling from text fields.
         let jsonBody = "{\"\(Client.Constants.LoginKeys.Udacity)\": {\"\(Client.Constants.LoginKeys.Username)\":\"\(userIDTextField.text as! String)\", \"\(Client.Constants.LoginKeys.Password)\":\"\(passwordTextField.text as! String)\"}}"
-        //let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginKeys.Udacity : [ Client.Constants.LoginKeys.Username: userIDTextField.text as AnyObject] [Client.Constants.LoginKeys.Password : ]] as [String:[String:AnyObject]] )
-
+        
         // call task for post with url and jsonBody to get the log in results.
-        Client.sharedInstance().taskForPostMethod(url: urlUdacity, jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForPost:{ (results, error) in
-            
+        Client.sharedInstance().doAllTasks(url: urlUdacity,task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks:{ (results, error) in
             // Send values to completion handler
             if let error = error {
                 print(error)

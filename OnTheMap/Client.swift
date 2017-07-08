@@ -38,6 +38,8 @@ class Client: NSObject {
     
     
     // MARK: MAKE JSON
+    
+    //tried to find a way to abstract the json building process but had some issues. Will attempt again later.
     func makeJSON(_ jsonBody: [String:[String:AnyObject]]) -> String {
         
         let json = try? JSONSerialization.data(withJSONObject: jsonBody, options: .prettyPrinted)
@@ -47,120 +49,55 @@ class Client: NSObject {
     
     
     
-    
-    
-    
-    
-    // MARK: GET
-    
-    func taskForGETMethod(_ url: URL, jsonBody: String, truncatePrefix: Int, completionHandlerForGET: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        //let request = NSMutableURLRequest(url: URL(string: "https://parse.udacity.com/parse/classes/StudentLocation")!)
-        
-        let request = NSMutableURLRequest(url: url)
-        request.httpMethod = "GET"
-        let urlstring = url.absoluteString
-        if (urlstring.range(of: "api.udacity") != nil)   {
-            // if loging in
-            request.addValue("application/json", forHTTPHeaderField: "Accept")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-            
-        } else {
-            // if requesting to post data to the parse api
-            
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-            
-        }
-        
-        return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForGET)
-
-    }
-    
-    // MARK:  POST
-    
-    // method takes url, jsonBody, truncatePrefix, and a completion handler as parameters
+    // method takes url, task, jsonBody, truncatePrefix, and a completion handler as parameters
     // url - prebuilt before passing in based on method being performed,
+    // task - type (GET, PUT, DELETE, POST) as string to tell the server what to do
     // jsonBody - prebuilt before passing in based on method being performed,
     // truncatePrefix - Used to remove the first x characters in the data in the doRequestWithCompletion method
     //  -> truncatePrefix used for the Udacity Log in with a value of 5 to pass their security technique
     // completion handler to handle the result or error via passthroughs.
-    func taskForPostMethod(url: URL, jsonBody: String, truncatePrefix: Int, completionHandlerForPost: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-        
+
+    func doAllTasks(url: URL, task: String, jsonBody: String, truncatePrefix: Int, completionHandlerForAllTasks: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
         let request = NSMutableURLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = task
         let urlstring = url.absoluteString
-        if (urlstring.range(of: "api.udacity") != nil)   {
-            // if loging in
+        
+        if task == "PUT" {
+            request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
+            request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
             request.addValue("application/json", forHTTPHeaderField: "Accept")
             request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-            
         } else {
-            // if requesting to post data to the parse api
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-            
+        
+            if (urlstring.range(of: "api.udacity") != nil)   {
+                if task == "DELETE" {
+                    var xsrfCookie: HTTPCookie? = nil
+                    let sharedCookieStorage = HTTPCookieStorage.shared
+                    for cookie in sharedCookieStorage.cookies! {
+                        if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
+                    }
+                    if let xsrfCookie = xsrfCookie {
+                        request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
+                    }
+                    
+                }
+                request.addValue("application/json", forHTTPHeaderField: "Accept")
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                
+            } else {
+                // if requesting to post data to the parse api
+                
+                request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
+                request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                
+                
+                
+            }
         }
-        
-        print(request)
-        return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForPost)
-        
-        
-    }
-    
-    
-    //
-    
-    func taskForPut(url: URL, jsonBody: String, completionHandlerForPut: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask {
-        let request = NSMutableURLRequest(url: url)
-        request.httpMethod = "PUT"
-        request.addValue("QrX47CA9cyuGewLdsL7o5Eb8iug6Em8ye0dnAbIr", forHTTPHeaderField: "X-Parse-Application-Id")
-        request.addValue("QuWThTdiRmTux3YaDseUSEpUKo7aBYM737yKd4gY", forHTTPHeaderField: "X-Parse-REST-API-Key")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-        return doRequestWithCompletion(request, truncatePrefix: 0, completion: completionHandlerForPut)
-    }
-    
-    
-    func taskForDelete(url: URL, jsonBody: String, completionHandlerForDelete: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
-    
-        let request = NSMutableURLRequest(url: url)
-        request.httpMethod = "DELETE"
-        let urlstring = url.absoluteString
-        
-        if (urlstring.range(of: "api.udacity") != nil)   {
-            // if loging in
-            request.addValue("application/json", forHTTPHeaderField: "Accept")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            var xsrfCookie: HTTPCookie? = nil
-            let sharedCookieStorage = HTTPCookieStorage.shared
-            for cookie in sharedCookieStorage.cookies! {
-                if cookie.name == "XSRF-TOKEN" { xsrfCookie = cookie }
-            }
-            if let xsrfCookie = xsrfCookie {
-                request.setValue(xsrfCookie.value, forHTTPHeaderField: "X-XSRF-TOKEN")
-            }
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-        
-        } else {
-            // if requesting to post data to the parse api
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
-            request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
-            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = jsonBody.data(using: String.Encoding.utf8)
-        
-        }
-        
-        print(request)
-        return doRequestWithCompletion(request, truncatePrefix: 0, completion: completionHandlerForDelete)
-    
-    
+        return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForAllTasks)
     }
     
     
@@ -189,14 +126,15 @@ class Client: NSObject {
     
     // MARK: GET MY USER INFO
     func getMyUser() {
-        let url = URL(string: "https://www.udacity.com/api/users/\(Client.Constants.UserSession.accountKey as! String)")
-        Client.sharedInstance().taskForGETMethod(url!, jsonBody: "", truncatePrefix: 5, completionHandlerForGET:  {(results, error) in
+        let url = Client.URLFromParameters(Constants.Udacity.Scheme, Constants.Udacity.Host, Constants.Udacity.Path, withPathExtension: Constants.Udacity.UserPath as! String + Constants.UserSession.accountKey as! String  , withQuery: nil)
+        Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 5, completionHandlerForAllTasks:  {(results, error) in
             if let error = error {
                 print(error)
             } else {
                 let user = results?["user"] as! [String : Any]
                 self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
             }
+            print(self.myinfo?.firstName,self.myinfo?.lastName,self.myinfo?.uniqueKey)
             
         })
         
