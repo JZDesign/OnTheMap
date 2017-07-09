@@ -221,12 +221,9 @@ class Client: NSObject {
                     } else {
                         sendError("Server error: \(code)")
                     }
+                } else {
+                    sendError("Your request returned a status code other than 2xx! Response: \(code)")
                 }
-
-
-                
-                sendError("Your request returned a status code other than 2xx! Response: \(code)")
-                
                 return
             }
             

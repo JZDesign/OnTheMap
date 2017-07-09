@@ -102,8 +102,11 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     
     func findUserAnnotation() {
         // method to locate any annotations by a given uniqueKey and delete them
-        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation as! String, withQuery: "?where={\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\"}")
-        Client.sharedInstance().doAllTasks(url: url, task:"GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  { (result, error) in
+        //let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation as! String, withQuery: "?where={\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\"}")
+       
+        let url = URL(string:"https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(Client.Constants.UserSession.accountKey )%22%7D")
+        
+        Client.sharedInstance().doAllTasks(url: url!, task:"GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  { (result, error) in
             if error != nil {
                 print(error)
             }
@@ -129,6 +132,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
         //
         
         for item in userPins {
+            print(item.firstName,item.mapString,item.mediaURL,item.objectId)
             if let string = item.objectId as? String {
                 let url = URL(string:"https://parse.udacity.com/parse/users/\(string)")
 
@@ -233,7 +237,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             })
             
             let overwriteAction = UIAlertAction(title: "Overwrite", style: .destructive, handler: { (action) in
-                self.destroyPins()
+                //self.destroyPins()
                 self.doSetPin(true)
             })
            
