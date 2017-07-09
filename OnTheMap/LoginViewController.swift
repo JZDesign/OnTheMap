@@ -15,6 +15,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     @IBOutlet var passwordTextField: UITextField!
     var session = URLSession.shared
     let urlUdacity = Client.URLFromParameters(Client.Constants.Udacity.Scheme, Client.Constants.Udacity.Host, Client.Constants.Udacity.Path, withPathExtension: Client.Constants.Methods.Session)
+    let ai = ActivityIndicator(text:"Loading")
     
 
     // MARK: LIFECYLE
@@ -22,9 +23,6 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     override func viewDidLoad() {
         
         super.viewDidLoad()
-
-        
-        
         
         // Facebook
         // set requested permissions
@@ -39,37 +37,38 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         checkFB()
     }
 
-    
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    override func viewWillAppear(_ animated: Bool) {
+        self.view.addSubview(ai)
+        ai.hide()
     }
     
-    
+
     // MARK: SEGUE
     
     func doSegue() {
+        
         // Run on main queue to avoid crashing app by calling segue in background
         DispatchQueue.main.async {
+            self.userIDTextField.text = ""
+            self.passwordTextField.text = ""
             self.performSegue(withIdentifier: "DidLogIn", sender: self)
         }
-        
-    
-        
     }
     
     
     // MARK: Facebook Helper
     
     func checkFB() {
+        
         if let token = FBSDKAccessToken.current() {
-            
+            ai.show()
             let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
             
             Client.sharedInstance().doAllTasks(url: urlUdacity, task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks: { (result, error) in
             
                 if error != nil {
                     print(error)
+                    
                     DispatchQueue.main.async {
                         self.loginFailed("Facebook Login Failed")
                     }
@@ -78,7 +77,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
                 Client.sharedInstance().getMyUser()
                 
                 self.doSegue()
-
+                
             })
         }
 
@@ -100,6 +99,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     // MARK: Failed attempt to log in
     
     func loginFailed(_ message: String) {
+        self.ai.hide()
         let alert = UIAlertController(title: message, message: "Please try again.", preferredStyle: .alert)
         let button = UIAlertAction(title: "Okay", style: .default, handler: nil)
         alert.addAction(button)
@@ -119,6 +119,9 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     
     
     @IBAction func doLogInButton(_ sender: Any) {
+        
+        ai.show()
+        
         // set parameters
         let parameters = [String:AnyObject]()
         
@@ -141,7 +144,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             Client.sharedInstance().getMyUser()
             
             self.doSegue()
-                       
+            
         }) // end completionHandlerForPost
         
     }

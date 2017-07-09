@@ -7,6 +7,8 @@
 //
 
 import Foundation
+import FacebookLogin
+import FacebookCore
 
 class Client: NSObject {
     // MARK: Properties
@@ -33,7 +35,33 @@ class Client: NSObject {
     }
     
     
+    // MARK: log out
     
+    func logOut(completed: @escaping (_ error: NSError?) -> ())  {
+        // check for log in type
+        // if FB call the loginManager to do a log off
+        // else build URL DELETE request
+        if let token = FBSDKAccessToken.current() {
+            // do facebook log out
+            let loginManager = LoginManager()
+            loginManager.logOut()
+            completed(nil)
+        } else {
+            // do udacity log out
+            let url = Client.URLFromParameters(Constants.Udacity.Scheme, Constants.Udacity.Host, Constants.Udacity.Path, withPathExtension: Constants.Methods.Session, withQuery: "")
+            
+            doAllTasks(url: url, task: "DELETE", jsonBody: "", truncatePrefix: 5, completionHandlerForAllTasks: { (result, error) in
+                if error != nil {
+                    print(error)
+                    completed(error)
+                } else {
+                    print(result)
+                    completed(nil)
+                }
+            })// end allTasks
+        }
+    
+    }
     
     
     
@@ -58,6 +86,7 @@ class Client: NSObject {
     // completion handler to handle the result or error via passthroughs.
 
     func doAllTasks(url: URL, task: String, jsonBody: String, truncatePrefix: Int, completionHandlerForAllTasks: @escaping (_ result: AnyObject?, _ error: NSError?) -> Void) -> URLSessionDataTask {
+        //build requeset based on HTTP method
         let request = NSMutableURLRequest(url: url)
         request.httpMethod = task
         let urlstring = url.absoluteString
@@ -84,18 +113,16 @@ class Client: NSObject {
                 request.addValue("application/json", forHTTPHeaderField: "Accept")
                 request.addValue("application/json", forHTTPHeaderField: "Content-Type")
                 
-                
             } else {
-                // if requesting to post data to the parse api
                 
+                //Parse requests
                 request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-Application-Id")
                 request.addValue(Client.Constants.ParameterValues.ParseAppID, forHTTPHeaderField: "X-Parse-REST-API-Key")
                 request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-                
-                
-                
+
             }
-        }
+        } // end PUT {} Else {}
+        // encode request
         request.httpBody = jsonBody.data(using: String.Encoding.utf8)
         return doRequestWithCompletion(request, truncatePrefix: truncatePrefix, completion: completionHandlerForAllTasks)
     }
@@ -108,27 +135,33 @@ class Client: NSObject {
     // GET LOCATIONS
     
    
-    
-    func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
-    {
-        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation, withQuery:  "?order=updatedAt")
+    // helper for get locations data
+    func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask {
+        // build url and submit for data in order
+        
+        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation , withQuery:  "?order=updatedAt")
+        
         return Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  completion)
         
     }
     
-    func getLocations(completed: @escaping () -> ()) {
-        locations.removeAll()
+    func getLocations(completed: @escaping (_ error: NSError?) -> ()) {
+    
+        // try to download data
+        // on success store in array of locations
         downloadJSON({ (result, error) in
             if error != nil {
                 print(error?.localizedDescription)
-            }
-            let locationsDict = result?["results"] as! [[String : Any]]
-            for item in locationsDict {
-                let newLocation = StudentLocation(studentLocation: item)
-                self.locations.append(newLocation)
+                completed(error)
+            } else {
+                let locationsDict = result?["results"] as! [[String : Any]]
+                for item in locationsDict {
+                    let newLocation = StudentLocation(studentLocation: item)
+                    self.locations.append(newLocation)
+                }
             }
             print(result)
-            completed()
+            completed(nil)
         })
         
     }
@@ -140,6 +173,8 @@ class Client: NSObject {
     
     // MARK: GET MY USER INFO
     func getMyUser() {
+        // request info based on account key
+        // on success set struct to contain name and key
         let url = Client.URLFromParameters(Constants.Udacity.Scheme, Constants.Udacity.Host, Constants.Udacity.Path, withPathExtension: Constants.Udacity.UserPath as! String + Constants.UserSession.accountKey as! String  , withQuery: nil)
         Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 5, completionHandlerForAllTasks:  {(results, error) in
             if let error = error {
@@ -155,20 +190,6 @@ class Client: NSObject {
     }
 
     
-    
-    
-    
-    
-    // MARK: Helpers
-    
-    // substitute the key for the value that is contained within the method name
-    func substituteKeyInMethod(_ method: String, key: String, value: String) -> String? {
-        if method.range(of: "{\(key)}") != nil {
-            return method.replacingOccurrences(of: "{\(key)}", with: value)
-        } else {
-            return nil
-        }
-    }
     
     
     // request - prebuilt when passed in,

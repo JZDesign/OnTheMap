@@ -10,24 +10,20 @@ import UIKit
 import MapKit
 
 class MapViewController: UIViewController, MKMapViewDelegate {
-
-    var annotations = [MKPointAnnotation]()
     
+    // annotation vaiables, Float is for color opacity
+    var annotations = [MKPointAnnotation]()
+    var opacity: Float = 1.0
     
     
     @IBOutlet var mapView: MKMapView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        // on load get pins
         doReload(self)
-        
     }
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-  
     
     
     // MARK: HELPER
@@ -35,10 +31,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func addAnnotations(_ locations: [StudentLocation])  {
        
          for location in locations {
-            // print(location.firstName!,location.lastName!,location.mediaURL!,location.mapString!)
             
-            // Notice that the float values are being used to create CLLocationDegree values.
-            // This is a version of the Double type.
             let lat = CLLocationDegrees(location.latitude as! Double)
             let long = CLLocationDegrees(location.longitude as! Double)
             
@@ -52,9 +45,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 annotation.title = "\(first) \(last)"
                 annotation.subtitle = mediaURL
                 
-               
-
-                
                 // Finally we place the annotation in an array of annotations.
                 annotations.append(annotation)
             } else {
@@ -65,16 +55,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         self.mapView.addAnnotations(annotations)
     }
 
-    func reloadAnnotaions(_ completion: (_ result : AnyObject?,_ Error : NSError?) -> Void) {
-        
-        let locations = Client.sharedInstance().locations
-        completion(locations as AnyObject, nil)
-        
-    }
-  
-    // reload helper
-    
-    
+
     
     // MARK: - MKMapViewDelegate
     
@@ -87,11 +68,17 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
         
+        // set float value to edit opacity
+        let float = 1.0 / Float(Client.sharedInstance().locations.count)
+        
         if pinView == nil {
+            
             pinView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: reuseId)
             pinView!.canShowCallout = true
-            pinView!.pinTintColor = randomColor()
+            pinView!.pinTintColor = UIColor(colorLiteralRed: 255.00, green: 0, blue: 0, alpha: opacity)
             pinView!.rightCalloutAccessoryView = UIButton(type: .detailDisclosure)
+            opacity = opacity - float
+            // change opacity for next run through
         }
         else {
             pinView!.annotation = annotation
@@ -101,16 +88,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return pinView
     }
     
-    // random color for pins
-    func randomColor() -> UIColor {
-        //generate truly random RGB values
-        var red =  Float(arc4random()) / Float(UINT32_MAX)
-        var green =  Float(arc4random()) / Float(UINT32_MAX)
-        var blue =  Float(arc4random()) / Float(UINT32_MAX)
-        var color = UIColor.init(red: CGFloat(red), green: CGFloat(green), blue: CGFloat(blue), alpha: 1)
-        return color
-    }
-
     
     
     // This delegate method is implemented to respond to taps. It opens the system browser
@@ -119,7 +96,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if control == view.rightCalloutAccessoryView {
             let app = UIApplication.shared
             if let toOpen = view.annotation?.subtitle! {
-                //app.openURL(URL(string: toOpen)!)
+                // check for link prefix to aid safari in opening the link.
                 if (toOpen.range(of: "://") != nil){
                     app.open(URL(string: toOpen)!, options: [:] , completionHandler: nil)
                 } else {
@@ -130,45 +107,93 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
 
     
-        /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
+    // MARK: BUTTONS
+    
+    // launch the addAnnotationViewController
     @IBAction func doAddLocation(_ sender: Any) {
         let storyBoard : UIStoryboard = UIStoryboard(name: "Main", bundle: nil)
         let vc: AddAnnotationViewController = storyBoard.instantiateViewController(withIdentifier: "AddAnnotation") as! AddAnnotationViewController 
         present(vc , animated: true, completion: nil)
     }
-
+    
+    
+    // call the logout function in client
+    @IBAction func doLogOut(_ sender: Any) {
+        
+        Client.sharedInstance().logOut { (error) in
+            if error != nil {
+                self.doFailedAlert("Logout Failed",error!)
+            } else {
+                DispatchQueue.main.async {
+                    self.dismiss(animated: true, completion: nil)
+                }
+            }
+        }
+    }
+    
+    
+    
+    // reload pin data and mapview
     @IBAction func doReload(_ sender: Any) {
         
+        //reset opacity for pins
+        opacity = 1.0
+        
+        // display indictor
+        let ai = ActivityIndicator(text:"Loading")
+        self.view.addSubview(ai)
+        ai.show()
+        
+        //remove pins
         self.mapView.removeAnnotations(self.annotations)
         self.annotations.removeAll()
-        Client.sharedInstance().locations.removeAll()
         
-        Client.sharedInstance().getLocations(completed: {
-            DispatchQueue.main.async {
-                self.reloadAnnotaions { (result, error) in
-                    if error != nil{
-                        print(error)
+        // reset location data
+        Client.sharedInstance().locations.removeAll()
+        Client.sharedInstance().getLocations(completed: { (downloadError) in
+            if downloadError != nil {
+                self.doFailedAlert("Download Failed!", downloadError!)
+                ai.hide()
+            } else {
+                // call main queue to update UI
+                DispatchQueue.main.async {
+                    self.reloadAnnotaions { (result, error) in
+                        if error != nil{
+                            print(error)
+                        }
+                        else {
+                            self.addAnnotations(result as! [StudentLocation])
+                        }
+                        // hide indicator
+                         ai.hide()
                     }
-                    else {
-                        self.addAnnotations(result as! [StudentLocation])
-                    }
-                }
-            } // end async            })
-            
+                } // end async
+            } // end else
         })// end get locations
     }
     
+    // reload helper
+    func reloadAnnotaions(_ completion: (_ result : AnyObject?,_ Error : NSError?) -> Void) {
+        // get locations and send back on completion
+        let locations = Client.sharedInstance().locations
+        completion(locations as AnyObject, nil)
+        
+    }
+    
+    
 
+    // MARK: ALERT
+    
+    func doFailedAlert(_ message: String, _ error: NSError) {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: message, message: "\(error.localizedDescription)", preferredStyle: .alert)
+            let action = UIAlertAction(title: "Crap Nuggets!", style: .destructive, handler: nil)
+            alert.addAction(action)
+            self.present(alert, animated: true)
+        }
         
-        
-        
+    }
+    
+    
     
 }

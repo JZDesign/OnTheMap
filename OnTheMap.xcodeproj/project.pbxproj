@@ -20,6 +20,7 @@
 		427F9A981F0F0258003DB0CC /* ListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F9A971F0F0258003DB0CC /* ListViewController.swift */; };
 		427F9A9C1F11D581003DB0CC /* AddAnnotationGesture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F9A9B1F11D581003DB0CC /* AddAnnotationGesture.swift */; };
 		427F9A9E1F11D618003DB0CC /* AddAnnotationSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F9A9D1F11D618003DB0CC /* AddAnnotationSearch.swift */; };
+		427F9AA01F120B30003DB0CC /* ActivityIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 427F9A9F1F120B30003DB0CC /* ActivityIndicator.swift */; };
 		478A0985A7A9BCEAF82A441C /* Pods_OnTheMap.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 967FB36EC4D2EC85CA0A5585 /* Pods_OnTheMap.framework */; };
 /* End PBXBuildFile section */
 
@@ -43,6 +44,7 @@
 		427F9A971F0F0258003DB0CC /* ListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ListViewController.swift; sourceTree = "<group>"; };
 		427F9A9B1F11D581003DB0CC /* AddAnnotationGesture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddAnnotationGesture.swift; sourceTree = "<group>"; };
 		427F9A9D1F11D618003DB0CC /* AddAnnotationSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddAnnotationSearch.swift; sourceTree = "<group>"; };
+		427F9A9F1F120B30003DB0CC /* ActivityIndicator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ActivityIndicator.swift; sourceTree = "<group>"; };
 		94F8DEA3B0F5BECB63926762 /* Pods-OnTheMap.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-OnTheMap.release.xcconfig"; path = "Pods/Target Support Files/Pods-OnTheMap/Pods-OnTheMap.release.xcconfig"; sourceTree = "<group>"; };
 		967FB36EC4D2EC85CA0A5585 /* Pods_OnTheMap.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_OnTheMap.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -114,6 +116,7 @@
 		4278363A1F096430002B9215 /* View */ = {
 			isa = PBXGroup;
 			children = (
+				427F9A9F1F120B30003DB0CC /* ActivityIndicator.swift */,
 			);
 			name = View;
 			sourceTree = "<group>";
@@ -288,6 +291,7 @@
 				427F9A9E1F11D618003DB0CC /* AddAnnotationSearch.swift in Sources */,
 				427836381F095C89002B9215 /* LoginViewController.swift in Sources */,
 				427836261F05DF0F002B9215 /* AppDelegate.swift in Sources */,
+				427F9AA01F120B30003DB0CC /* ActivityIndicator.swift in Sources */,
 				427F9A9C1F11D581003DB0CC /* AddAnnotationGesture.swift in Sources */,
 				427836421F0990FE002B9215 /* Client.swift in Sources */,
 				4278363D1F096488002B9215 /* Constants.swift in Sources */,

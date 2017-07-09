@@ -7,7 +7,7 @@
 //
 
 import Foundation
-class StudentLocation {
+struct StudentLocation {
     
     
    
