@@ -9,6 +9,7 @@
 import Foundation
 import FacebookLogin
 import FacebookCore
+import CoreLocation
 
 class Client: NSObject {
     // MARK: Properties
@@ -156,18 +157,61 @@ class Client: NSObject {
             } else {
                 let locationsDict = result?["results"] as! [[String : Any]]
                 for item in locationsDict {
-                    let newLocation = StudentLocation(studentLocation: item)
-                    self.locations.append(newLocation)
+                    var newLocation = StudentLocation(studentLocation: item)
+                    if let dstring = item["updatedAt"] as? String {
+                        
+                        //, let placemarkLocation = CLLocationCoordinate2D(latitude: item["latitude"] as! CLLocationDegrees, longitude: item["longitude"] as! CLLocationDegrees) as? CLLocationCoordinate2D
+                        newLocation.updatedAt = self.getDate(date: dstring)
+                        self.locations.append(newLocation)
+                    }
+                    
+                    
                 }
             }
+            
             print(result)
             completed(nil)
         })
         
     }
+    
+    // https://stackoverflow.com/questions/41628425/how-to-convert-2017-01-09t110000-000z-into-date-in-swift-3
+    
+    //func getDate(date: String, location: CLLocationCoordinate2D) -> NSDate {
+    func getDate(date: String) -> NSDate {
+        
+        /*
+         // tried to get timezone from geo location to sort REALTIME and not based on timestamp alone. Will attepmt again later.
+        let newLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
+        let reverseLocation = CLGeocoder()
+        // variable to store result
+        var result = ""
+        reverseLocation.reverseGeocodeLocation(newLocation) { (placemarks, error) in
+            var placemark: CLPlacemark!
+            placemark = placemarks?[0]
+            print(placemark.addressDictionary!)
+        }
+         */
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+        let dateResult = dateFormatter.date(from: date)
+        print("date: \(dateResult)")
+        return dateResult as! NSDate
+    }
 
     
+    // MARK: SORT
     
+    func sortLocations(completed: @escaping () -> ()) {
+        // sort by updated by date
+        for location in self.locations {
+           // location.updatedAt = getdate(location.updatedAt)
+        }
+        self.locations.sort(by: { ($0.updatedAt as? NSDate)?.compare(($1.updatedAt as? NSDate)! as Date) == .orderedDescending})
+        completed()
+    }
     
     
     
@@ -207,7 +251,8 @@ class Client: NSObject {
             
             /* GUARD: Was there an error? */
             guard (error == nil) else {
-                sendError("There was an error with your request: \(error)")
+                let errorString = (error as! URLError).localizedDescription
+                sendError("There was an error with your request: \(errorString)")
                 return
             }
             

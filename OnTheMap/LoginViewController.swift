@@ -10,7 +10,7 @@ import UIKit
 import FacebookLogin
 import FacebookCore
 
-class LoginViewController: UIViewController, LoginButtonDelegate {
+class LoginViewController: UIViewController, UITextFieldDelegate, LoginButtonDelegate {
     @IBOutlet var userIDTextField: UITextField!
     @IBOutlet var passwordTextField: UITextField!
     var session = URLSession.shared
@@ -40,6 +40,14 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     override func viewWillAppear(_ animated: Bool) {
         self.view.addSubview(ai)
         ai.hide()
+    }
+    
+    
+    // MARK: TEXFIELD Delegate
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
     }
     
 

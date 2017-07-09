@@ -96,12 +96,20 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if control == view.rightCalloutAccessoryView {
             let app = UIApplication.shared
             if let toOpen = view.annotation?.subtitle! {
-                // check for link prefix to aid safari in opening the link.
-                if (toOpen.range(of: "://") != nil){
-                    app.open(URL(string: toOpen)!, options: [:] , completionHandler: nil)
-                } else {
-                    app.open(URL(string: "http://\(toOpen)")!, options: [:] , completionHandler: nil)
+                
+                // create mutable object to edit links
+                var open = toOpen
+                // remove spaces to prevent crash
+                if open.range(of: " ") != nil{
+                    open = open.replacingOccurrences(of: " ", with: "")
                 }
+                // set prefix to aid safari
+                if (open.range(of: "://") != nil){
+                    app.open(URL(string: open)!, options: [:] , completionHandler: nil)
+                } else {
+                    app.open(URL(string: "http://\(open)")!, options: [:] , completionHandler: nil)
+                }
+
             }
         }
     }

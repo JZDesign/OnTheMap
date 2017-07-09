@@ -55,7 +55,7 @@ struct StudentLocation {
         self.createdAt = studentLocation["createdAt"] as? NSDate
         self.updatedAt = studentLocation["updatedAt"] as? NSDate
     }
-    
+   
 
     
 }

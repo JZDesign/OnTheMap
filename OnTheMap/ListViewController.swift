@@ -34,20 +34,48 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         let CellID = "Locations"
         let placeholderCell = tableView.dequeueReusableCell(withIdentifier: CellID, for: indexPath)
         //read data in from struct objects
-        placeholderCell.textLabel?.text = "\(locations[indexPath.row].firstName!) \(locations[indexPath.row].lastName!)"
-        placeholderCell.detailTextLabel?.text? = "\(locations[indexPath.row].mediaURL!)"
+        if let first = locations[indexPath.row].firstName as? String, let last = locations[indexPath.row].lastName as? String, let mediaURL = locations[indexPath.row].mediaURL as? String {
+            placeholderCell.textLabel?.text = "\(first as! String) \(last as! String)"
+            placeholderCell.detailTextLabel?.text? = "\(mediaURL as! String)"
+            
+        } else {
+            // don't display bad data
+            // size of these cells will be set to 0
+            placeholderCell.textLabel?.text? = "Pin stored nil values"
+            
+        }
         // display cell info
         return placeholderCell
+        
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        if let first = locations[indexPath.row].firstName as? String, let last = locations[indexPath.row].lastName as? String, let mediaURL = locations[indexPath.row].mediaURL as? String {
+            // set height to display row
+            return 50.0
+            
+        } else {
+            // don't display bad data
+            return 0.0
+            
+        }
+
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let app = UIApplication.shared
         if let toOpen = tableView.cellForRow(at: indexPath)?.detailTextLabel?.text! {
+            // mutable object to edit value
+            var open = toOpen
+            // remove spaces to prevent crash
+            if open.range(of: " ") != nil{
+                open = open.replacingOccurrences(of: " ", with: "")
+            }
             // set prefix to aid safari
-            if (toOpen.range(of: "://") != nil){
-                app.open(URL(string: toOpen)!, options: [:] , completionHandler: nil)
+            if (open.range(of: "://") != nil){
+                app.open(URL(string: open)!, options: [:] , completionHandler: nil)
             } else {
-                app.open(URL(string: "http://\(toOpen)")!, options: [:] , completionHandler: nil)
+                app.open(URL(string: "http://\(open)")!, options: [:] , completionHandler: nil)
             }
         }
 
@@ -92,11 +120,17 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
                 ai.hide()
             } else {
                 // call on main to update UI
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                Client.sharedInstance().sortLocations(completed: {
                     self.locations = Client.sharedInstance().locations
-                    self.tableView.reloadData()
-                    ai.hide()
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                        ai.hide()
+                    }
+                    
                 })
+
+                    
+                
             }
         }
         
