@@ -26,9 +26,9 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     // placeholder for location string
     var mapString: String = ""
     
-    // values for replace pin function
+    // bool for replace pin function
     var userPinExists = false
-    var userPins = [StudentLocation]()
+    
     
     // tap recognition to add pins
     var tapRecognizer = UITapGestureRecognizer()
@@ -74,12 +74,12 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
         
         // set annotation data
         self.annotation = annotation
-        Client.sharedInstance().myinfo?.latitude = self.annotation.coordinate.latitude
-        Client.sharedInstance().myinfo?.longitude = self.annotation.coordinate.longitude
+        StudentDataSource.sharedInstance.myinfo?.latitude = self.annotation.coordinate.latitude
+        StudentDataSource.sharedInstance.myinfo?.longitude = self.annotation.coordinate.longitude
         
         // get location string based on pin geolocation
         self.geoString {
-            Client.sharedInstance().myinfo?.mapString = self.mapString
+            StudentDataSource.sharedInstance.myinfo?.mapString = self.mapString
             // Update UI
             self.locationLabel.text = self.mapString
         }
@@ -126,10 +126,10 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             let locationsDict = result?["results"] as! [[String : Any]]
             for item in locationsDict {
                 let newLocation = StudentLocation(studentLocation: item)
-                self.userPins.append(newLocation)
+                StudentDataSource.sharedInstance.userPins.append(newLocation)
             }
 
-            if self.userPins.count > 0 {
+            if StudentDataSource.sharedInstance.userPins.count > 0 {
                 self.userPinExists = true
             }
         })
@@ -140,7 +140,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     
     func failedUpload(_ error: NSError?)  {
         DispatchQueue.main.async {
-            let alert = UIAlertController(title: "Upload Failed!", message: "\(error?.localizedDescription)", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Upload Failed!", message: "\(error?.localizedDescription as! String)", preferredStyle: .alert)
             let action = UIAlertAction(title: "Crap Nuggets!", style: .destructive, handler: nil)
             alert.addAction(action)
             self.present(alert, animated: true)
@@ -154,13 +154,13 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     func destroyPins() {
         // take array of userPins to delete all objects of a given user
         
-        for item in userPins {
+        for item in StudentDataSource.sharedInstance.userPins {
             print(item.firstName,item.mapString,item.mediaURL,item.objectId)
             if let string = item.objectId as? String {
-                let url = URL(string:"https://parse.udacity.com/parse/users/\(string)")
+                let url = URL(string:"https://parse.udacity.com/parse/classes/StudentLocation/\(string)")
+                print(url?.absoluteString)
 
-                let jsonBody = ""
-                Client.sharedInstance().doAllTasks(url: url!, task: "DELETE", jsonBody: jsonBody, truncatePrefix: 0, completionHandlerForAllTasks: { (result, error) in
+                Client.sharedInstance().doAllTasks(url: url!, task: "DELETE", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks: { (result, error) in
                     if error != nil {
                         print(error?.localizedDescription)
                     }
@@ -173,19 +173,20 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
         
     }
     
-    func doReplacePin(){
+    func doReplacePin(_ jsonBody: String){
         // Call PUT HTTP to replace location object already in place
         
-        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation + "/" + self.userPins[0].objectId! as! String, withQuery:  nil)
-        
-        let jsonBody = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"\(Client.sharedInstance().myinfo?.firstName as! String)\", \"lastName\": \"\(Client.sharedInstance().myinfo?.lastName  as! String)\",\"mapString\": \"\(Client.sharedInstance().myinfo?.mapString  as! String)\", \"mediaURL\": \"\(Client.sharedInstance().myinfo?.mediaURL  as! String)\",\"latitude\": \(Client.sharedInstance().myinfo?.latitude as! Double), \"longitude\": \(Client.sharedInstance().myinfo?.longitude as! Double)}"
+        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation + "/" + StudentDataSource.sharedInstance.userPins[0].objectId! as! String, withQuery:  nil)
         
         Client.sharedInstance().doAllTasks(url: url, task: "PUT", jsonBody: jsonBody, truncatePrefix: 0, completionHandlerForAllTasks:  { (result, error) in
             if error != nil {
                 self.failedUpload(error!)
+            } else {
+                print(result)
+                DispatchQueue.main.async {
+                    self.dismiss(animated: true, completion: nil)
+                }
             }
-            print(result)
-            
         })
     }
     
@@ -203,20 +204,22 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
             let submitAction = UIAlertAction(title: "Submit", style: .default, handler: { (action) -> Void in
               
                 // Get 1st TextField's text
-                Client.sharedInstance().myinfo?.mediaURL = alert.textFields![0].text
-                Client.sharedInstance().myinfo?.createdAt = NSDate(timeIntervalSinceNow: 0)
+                StudentDataSource.sharedInstance.myinfo?.mediaURL = alert.textFields![0].text
+                StudentDataSource.sharedInstance.myinfo?.createdAt = NSDate(timeIntervalSinceNow: 0)
+                
+                // set json for request
+                let jsonBody = Client.sharedInstance().makeJSON( [Client.Constants.Parse.UniqueKey : Client.Constants.UserSession.accountKey, Client.Constants.Parse.FirstName : StudentDataSource.sharedInstance.myinfo?.firstName, Client.Constants.Parse.LastName : StudentDataSource.sharedInstance.myinfo?.lastName, Client.Constants.Parse.MapString : StudentDataSource.sharedInstance.myinfo?.mapString, Client.Constants.Parse.MediaURL : StudentDataSource.sharedInstance.myinfo?.mediaURL, Client.Constants.Parse.Latitude : StudentDataSource.sharedInstance.myinfo?.latitude, Client.Constants.Parse.Longitude : StudentDataSource.sharedInstance.myinfo?.longitude] as [String: AnyObject])
                 
                 if replacePin {
                     
                     // if there is a pin in place update it
-                    self.doReplacePin()
+                    self.doReplacePin(jsonBody)
                
                 } else {
                     
                     // otherwise create users first pin
                     let url = self.urlParse
                     
-                    let jsonBody = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"\(Client.sharedInstance().myinfo?.firstName as! String)\", \"lastName\": \"\(Client.sharedInstance().myinfo?.lastName  as! String)\",\"mapString\": \"\(Client.sharedInstance().myinfo?.mapString  as! String)\", \"mediaURL\": \"\(Client.sharedInstance().myinfo?.mediaURL  as! String)\",\"latitude\": \(Client.sharedInstance().myinfo?.latitude as! Double), \"longitude\": \(Client.sharedInstance().myinfo?.longitude as! Double)}"
                     
                     Client.sharedInstance().doAllTasks(url: url, task: "POST", jsonBody: jsonBody, truncatePrefix: 0, completionHandlerForAllTasks:{ (results, error) in
                         
@@ -226,12 +229,16 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
                        
                         } else {
                             print(results)
+                            DispatchQueue.main.async {
+                                // dismiss view
+                                self.dismiss(animated: true)
+                            }
+                            
                         }
                         
+
                     }) // end completionHandlerForPost
                 }
-                // dismiss view
-                self.dismiss(animated: true, completion: nil)
             })// end sumbit action
            
             // Cancel button
@@ -265,7 +272,9 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     }
     
     func doSubmitLocation(_ userPin: Bool){
-       // call doSetPin function after checking previous locations
+       
+
+        // call doSetPin function after checking previous locations
         if userPinExists {
             
             let alert = UIAlertController(title: "Would you like to overwrite your previously posted location?", message: "This cannot be undone.", preferredStyle: .alert)

@@ -15,11 +15,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var annotations = [MKPointAnnotation]()
     var opacity: Float = 1.0
     
+    // activity indicator
+    let ai = ActivityIndicator(text:"Loading")
+    
     
     @IBOutlet var mapView: MKMapView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.addSubview(ai)
+        
         // on load get pins
         doReload(self)
     }
@@ -69,7 +74,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
         
         // set float value to edit opacity
-        let float = 1.0 / Float(Client.sharedInstance().locations.count)
+        let float = 1.0 / Float(StudentDataSource.sharedInstance.studentData.count)
         
         if pinView == nil {
             
@@ -127,12 +132,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     // call the logout function in client
     @IBAction func doLogOut(_ sender: Any) {
-        
+        self.ai.show()
         Client.sharedInstance().logOut { (error) in
             if error != nil {
                 self.doFailedAlert("Logout Failed",error!)
             } else {
                 DispatchQueue.main.async {
+                    self.ai.hide()
                     self.dismiss(animated: true, completion: nil)
                 }
             }
@@ -148,20 +154,20 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         opacity = 1.0
         
         // display indictor
-        let ai = ActivityIndicator(text:"Loading")
-        self.view.addSubview(ai)
-        ai.show()
+        
+        self.ai.show()
         
         //remove pins
         self.mapView.removeAnnotations(self.annotations)
         self.annotations.removeAll()
         
         // reset location data
-        Client.sharedInstance().locations.removeAll()
+        StudentDataSource.sharedInstance.studentData.removeAll()
+
         Client.sharedInstance().getLocations(completed: { (downloadError) in
             if downloadError != nil {
                 self.doFailedAlert("Download Failed!", downloadError!)
-                ai.hide()
+                self.ai.hide()
             } else {
                 // call main queue to update UI
                 DispatchQueue.main.async {
@@ -173,7 +179,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                             self.addAnnotations(result as! [StudentLocation])
                         }
                         // hide indicator
-                         ai.hide()
+                         self.ai.hide()
                     }
                 } // end async
             } // end else
@@ -183,7 +189,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     // reload helper
     func reloadAnnotaions(_ completion: (_ result : AnyObject?,_ Error : NSError?) -> Void) {
         // get locations and send back on completion
-        let locations = Client.sharedInstance().locations
+        let locations = StudentDataSource.sharedInstance.studentData
         completion(locations as AnyObject, nil)
         
     }

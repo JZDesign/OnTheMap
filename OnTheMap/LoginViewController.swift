@@ -24,6 +24,11 @@ class LoginViewController: UIViewController, UITextFieldDelegate, LoginButtonDel
         
         super.viewDidLoad()
         
+        // set delegates for textFields
+        userIDTextField.delegate = self
+        passwordTextField.delegate = self
+        
+        
         // Facebook
         // set requested permissions
         let loginButton = LoginButton(readPermissions: [ .publicProfile ])
@@ -70,7 +75,7 @@ class LoginViewController: UIViewController, UITextFieldDelegate, LoginButtonDel
         
         if let token = FBSDKAccessToken.current() {
             ai.show()
-            let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : [ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject]] as [String:[String:AnyObject]] )
+            let jsonBody = Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBMobile : Client.sharedInstance().makeJSON([ Client.Constants.LoginResponseKeys.FBAuthToken: FBSDKAccessToken.current().tokenString as AnyObject] as [String:AnyObject]) as AnyObject]  )
             
             Client.sharedInstance().doAllTasks(url: urlUdacity, task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks: { (result, error) in
             
@@ -129,12 +134,12 @@ class LoginViewController: UIViewController, UITextFieldDelegate, LoginButtonDel
     @IBAction func doLogInButton(_ sender: Any) {
         
         ai.show()
-        
         // set parameters
         let parameters = [String:AnyObject]()
         
         // json for log in credentials pulling from text fields.
-        let jsonBody = "{\"\(Client.Constants.LoginKeys.Udacity)\": {\"\(Client.Constants.LoginKeys.Username)\":\"\(userIDTextField.text as! String)\", \"\(Client.Constants.LoginKeys.Password)\":\"\(passwordTextField.text as! String)\"}}"
+        
+        let jsonBody = Client.sharedInstance().makeJSON([Client.Constants.LoginKeys.Udacity : Client.sharedInstance().makeJSON([Client.Constants.LoginKeys.Username : userIDTextField.text as! String, Client.Constants.LoginKeys.Password : passwordTextField.text as! String ] as [String:AnyObject]) as AnyObject])
         
         // call task for post with url and jsonBody to get the log in results.
         Client.sharedInstance().doAllTasks(url: urlUdacity,task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks:{ (results, error) in

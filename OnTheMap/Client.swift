@@ -26,8 +26,9 @@ class Client: NSObject {
     var userID : Int? = nil
     
     // locations
-    var locations = [StudentLocation]()
-    var myinfo: StudentLocation? = nil
+    //var locations = [StudentLocation]()
+    //var myinfo: StudentLocation? = nil
+    //var userPins = [StudentLocation]()
     
     // MARK: Initializers
     
@@ -69,7 +70,7 @@ class Client: NSObject {
     // MARK: MAKE JSON
     
     //tried to find a way to abstract the json building process but had some issues. Will attempt again later.
-    func makeJSON(_ jsonBody: [String:[String:AnyObject]]) -> String {
+    func makeJSON(_ jsonBody: [String:AnyObject]) -> String {
         
         let json = try? JSONSerialization.data(withJSONObject: jsonBody, options: .prettyPrinted)
         let dataString = NSString(data: json!, encoding: String.Encoding.utf8.rawValue)
@@ -148,7 +149,7 @@ class Client: NSObject {
     
     func getLocations(completed: @escaping (_ error: NSError?) -> ()) {
     
-        // try to download data
+        // try to download data and scrub it
         // on success store in array of locations
         downloadJSON({ (result, error) in
             if error != nil {
@@ -157,19 +158,22 @@ class Client: NSObject {
             } else {
                 let locationsDict = result?["results"] as! [[String : Any]]
                 for item in locationsDict {
+                    
+                    // MARK: REVISIT
                     var newLocation = StudentLocation(studentLocation: item)
                     if let dstring = item["updatedAt"] as? String {
-                        
-                        //, let placemarkLocation = CLLocationCoordinate2D(latitude: item["latitude"] as! CLLocationDegrees, longitude: item["longitude"] as! CLLocationDegrees) as? CLLocationCoordinate2D
                         newLocation.updatedAt = self.getDate(date: dstring)
-                        self.locations.append(newLocation)
+                        //self.locations.append(newLocation)
+                        StudentDataSource.sharedInstance.studentData.append(newLocation)
+                        
                     }
-                    
-                    
                 }
             }
             
             print(result)
+            self.sortLocations {
+                //print(self.locations.description)
+            }
             completed(nil)
         })
         
@@ -179,25 +183,10 @@ class Client: NSObject {
     
     //func getDate(date: String, location: CLLocationCoordinate2D) -> NSDate {
     func getDate(date: String) -> NSDate {
-        
-        /*
-         // tried to get timezone from geo location to sort REALTIME and not based on timestamp alone. Will attepmt again later.
-        let newLocation = CLLocation(latitude: location.latitude, longitude: location.longitude)
-        let reverseLocation = CLGeocoder()
-        // variable to store result
-        var result = ""
-        reverseLocation.reverseGeocodeLocation(newLocation) { (placemarks, error) in
-            var placemark: CLPlacemark!
-            placemark = placemarks?[0]
-            print(placemark.addressDictionary!)
-        }
-         */
-        
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
         let dateResult = dateFormatter.date(from: date)
-        print("date: \(dateResult)")
         return dateResult as! NSDate
     }
 
@@ -206,10 +195,10 @@ class Client: NSObject {
     
     func sortLocations(completed: @escaping () -> ()) {
         // sort by updated by date
-        for location in self.locations {
+        for location in StudentDataSource.sharedInstance.studentData {
            // location.updatedAt = getdate(location.updatedAt)
         }
-        self.locations.sort(by: { ($0.updatedAt as? NSDate)?.compare(($1.updatedAt as? NSDate)! as Date) == .orderedDescending})
+        StudentDataSource.sharedInstance.studentData.sort(by: { ($0.updatedAt as? NSDate)?.compare(($1.updatedAt as? NSDate)! as Date) == .orderedDescending})
         completed()
     }
     
@@ -225,9 +214,9 @@ class Client: NSObject {
                 print(error)
             } else {
                 let user = results?["user"] as! [String : Any]
-                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0), updatedAt:  NSDate.init(timeIntervalSinceNow: 0))
+                StudentDataSource.sharedInstance.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0), updatedAt:  NSDate.init(timeIntervalSinceNow: 0))
             }
-            print(self.myinfo?.firstName,self.myinfo?.lastName,self.myinfo?.uniqueKey)
+            print(StudentDataSource.sharedInstance.myinfo?.firstName, StudentDataSource.sharedInstance.myinfo?.lastName, StudentDataSource.sharedInstance.myinfo?.uniqueKey)
             
         })
         

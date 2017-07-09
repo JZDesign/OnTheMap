@@ -10,20 +10,15 @@ import UIKit
 
 class ListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
-    // placeholder for locations for table
-    var locations = [StudentLocation]()
+    
     // outlet for table
     @IBOutlet weak var tableView: UITableView!
-    // array of results
-    override func viewDidLoad() {
-        locations = Client.sharedInstance().locations
-    }
-    
+   
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         // set table limits
-        return locations.count
+        return StudentDataSource.sharedInstance.studentData.count
     }
     
     
@@ -34,7 +29,8 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         let CellID = "Locations"
         let placeholderCell = tableView.dequeueReusableCell(withIdentifier: CellID, for: indexPath)
         //read data in from struct objects
-        if let first = locations[indexPath.row].firstName as? String, let last = locations[indexPath.row].lastName as? String, let mediaURL = locations[indexPath.row].mediaURL as? String {
+        if let first = StudentDataSource.sharedInstance.studentData[indexPath.row].firstName as? String, let last = StudentDataSource.sharedInstance.studentData[indexPath.row].lastName as? String, let mediaURL = StudentDataSource.sharedInstance.studentData[indexPath.row].mediaURL as? String {
+            
             placeholderCell.textLabel?.text = "\(first as! String) \(last as! String)"
             placeholderCell.detailTextLabel?.text? = "\(mediaURL as! String)"
             
@@ -50,7 +46,7 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        if let first = locations[indexPath.row].firstName as? String, let last = locations[indexPath.row].lastName as? String, let mediaURL = locations[indexPath.row].mediaURL as? String {
+        if let first = StudentDataSource.sharedInstance.studentData[indexPath.row].firstName as? String, let last = StudentDataSource.sharedInstance.studentData[indexPath.row].lastName as? String, let mediaURL = StudentDataSource.sharedInstance.studentData[indexPath.row].mediaURL as? String {
             // set height to display row
             return 50.0
             
@@ -111,26 +107,17 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
         ai.show()
         
         //reset data
-        self.locations = []
-        tableView.reloadData()
-        Client.sharedInstance().locations.removeAll()
+        StudentDataSource.sharedInstance.studentData.removeAll()  
         Client.sharedInstance().getLocations{ (downloadError) in
             if downloadError != nil {
                 self.doFailedAlert("Download Failed!",downloadError!)
                 ai.hide()
             } else {
                 // call on main to update UI
-                Client.sharedInstance().sortLocations(completed: {
-                    self.locations = Client.sharedInstance().locations
-                    DispatchQueue.main.async {
-                        self.tableView.reloadData()
-                        ai.hide()
-                    }
-                    
-                })
-
-                    
-                
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                    ai.hide()
+                }
             }
         }
         
