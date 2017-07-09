@@ -138,12 +138,13 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
                 }
             } else {
                 self.getKey(results as! [String : AnyObject])
+                print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
+                
+                Client.sharedInstance().getMyUser()
+                
+                self.doSegue()
+
             }
-            print(Client.Constants.UserSession.accountKey,  Client.Constants.UserSession.sessionID)
-            
-            Client.sharedInstance().getMyUser()
-            
-            self.doSegue()
             
         }) // end completionHandlerForPost
         
