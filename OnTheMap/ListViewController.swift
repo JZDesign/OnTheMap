@@ -10,14 +10,18 @@ import UIKit
 
 class ListViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
+    var locations = [StudentLocation]()
     // outlet for table
     @IBOutlet weak var tableView: UITableView!
     // array of results
-    let locations = Client.sharedInstance().locations
+    override func viewDidLoad() {
+        locations = Client.sharedInstance().locations
+    }
+    
     
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
-        let locations = Client.sharedInstance().locations
+        
         return locations.count
     }
     
@@ -54,11 +58,16 @@ class ListViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
     
     @IBAction func doReload(_ sender: Any) {
+        self.locations = []
+        tableView.reloadData()
+        Client.sharedInstance().locations.removeAll()
+        Client.sharedInstance().getLocations{
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                self.locations = Client.sharedInstance().locations
+                self.tableView.reloadData()
+            })
+        }
         
-        Client.sharedInstance().getLocations()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: { 
-            self.tableView.reloadData()
-        })
     }
 
     

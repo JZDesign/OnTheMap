@@ -23,12 +23,13 @@ class StudentLocation {
     var latitude: Double?
     var longitude: Double?
     var createdAt: NSDate?
+    var updatedAt: NSDate?
     //var ACL
     
     
     //initialize
     
-    init(objectId: String, uniqueKey: String, firstName: String, lastName: String, mapString: String, mediaURL: String, latitude: Double, longitude: Double, createdAt: NSDate) {
+    init(objectId: String, uniqueKey: String, firstName: String, lastName: String, mapString: String, mediaURL: String, latitude: Double, longitude: Double, createdAt: NSDate, updatedAt: NSDate) {
         self.objectId = objectId
         self.uniqueKey = uniqueKey
         self.firstName = firstName
@@ -38,6 +39,7 @@ class StudentLocation {
         self.latitude = latitude
         self.longitude = longitude
         self.createdAt = createdAt
+        self.updatedAt = updatedAt
         
     }
     
@@ -51,17 +53,10 @@ class StudentLocation {
         self.latitude = studentLocation["latitude"] as? Double
         self.longitude = studentLocation["longitude"] as? Double
         self.createdAt = studentLocation["createdAt"] as? NSDate
+        self.updatedAt = studentLocation["updatedAt"] as? NSDate
     }
     
-    // get data
-    
-    static func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
-    {
-        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation)
-            
-        return Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  completion)
-        
-    }
+
     
 }
 

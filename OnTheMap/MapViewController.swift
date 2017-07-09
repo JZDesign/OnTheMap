@@ -14,11 +14,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var annotations = [MKPointAnnotation]()
     
     
+    
     @IBOutlet var mapView: MKMapView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        doReload(self)
         
     }
 
@@ -26,20 +27,15 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        doReload(self)
-    }
+  
     
     
     // MARK: HELPER
     
     func addAnnotations(_ locations: [StudentLocation])  {
-        
-        
        
          for location in locations {
-            print(location.firstName!,location.lastName!,location.mediaURL!,location.mapString!)
+            // print(location.firstName!,location.lastName!,location.mediaURL!,location.mapString!)
             
             // Notice that the float values are being used to create CLLocationDegree values.
             // This is a version of the Double type.
@@ -72,9 +68,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func reloadAnnotaions(_ completion: (_ result : AnyObject?,_ Error : NSError?) -> Void) {
         
         let locations = Client.sharedInstance().locations
-        completion(locations as AnyObject,nil)
+        completion(locations as AnyObject, nil)
         
     }
+  
+    // reload helper
+    
+    
     
     // MARK: - MKMapViewDelegate
     
@@ -149,27 +149,26 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         self.mapView.removeAnnotations(self.annotations)
         self.annotations.removeAll()
+        Client.sharedInstance().locations.removeAll()
         
-        DispatchQueue.global(qos: .background).async {
-            Client.sharedInstance().getLocations()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
-            // remove pins and all annotations from storage and reload data
-
-            self.reloadAnnotaions { (result, error) in
-                if error != nil{
-                    print(error)
+        Client.sharedInstance().getLocations(completed: {
+            DispatchQueue.main.async {
+                self.reloadAnnotaions { (result, error) in
+                    if error != nil{
+                        print(error)
+                    }
+                    else {
+                        self.addAnnotations(result as! [StudentLocation])
+                    }
                 }
-                else {
-                    //
-                    self.addAnnotations(result as! [StudentLocation])
-                }
-            }
-
-        })
-        
-        
-        
-        
+            } // end async            })
+            
+        })// end get locations
     }
+    
+
+        
+        
+        
+    
 }

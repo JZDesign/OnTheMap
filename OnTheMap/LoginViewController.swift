@@ -24,8 +24,7 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
         super.viewDidLoad()
 
         
-        // get locations
-        Client.sharedInstance().getLocations()
+        
         
         // Facebook
         // set requested permissions
@@ -71,6 +70,9 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             
                 if error != nil {
                     print(error)
+                    DispatchQueue.main.async {
+                        self.loginFailed("Facebook Login Failed")
+                    }
                 }
                 self.getKey(result as! [String : AnyObject])
                 Client.sharedInstance().getMyUser()
@@ -85,15 +87,25 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
     // MARK: Facebook Delegate
     
     func loginButtonDidCompleteLogin(_ loginButton: LoginButton, result: LoginResult) {
-        //getMyUser()
-        print(result)
-        print("Token:", FBSDKAccessToken.current().tokenString)
         checkFB()
     }
     
     func loginButtonDidLogOut(_ loginButton: LoginButton) {
         // todo
     }
+    
+    
+    
+    
+    // MARK: Failed attempt to log in
+    
+    func loginFailed(_ message: String) {
+        let alert = UIAlertController(title: message, message: "Please try again.", preferredStyle: .alert)
+        let button = UIAlertAction(title: "Okay", style: .default, handler: nil)
+        alert.addAction(button)
+        present(alert, animated: true)
+    }
+    
 
     
     // MARK: Buttons
@@ -118,6 +130,9 @@ class LoginViewController: UIViewController, LoginButtonDelegate {
             // Send values to completion handler
             if let error = error {
                 print(error)
+                DispatchQueue.main.async {
+                    self.loginFailed(error.localizedDescription)
+                }
             } else {
                 self.getKey(results as! [String : AnyObject])
             }

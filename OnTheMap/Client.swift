@@ -107,16 +107,30 @@ class Client: NSObject {
     
     // GET LOCATIONS
     
-    func getLocations() {
-        locations.removeAll()
-        StudentLocation.downloadJSON({ (result, error) in
-        let locationsDict = result?["results"] as! [[String : Any]]
-        for item in locationsDict {
-            let newLocation = StudentLocation(studentLocation: item)
-            self.locations.append(newLocation)
-            }
+   
+    
+    func downloadJSON(_ completion:  @escaping (_ result: AnyObject?, _ error: NSError?) -> Void ) -> URLSessionDataTask
+    {
+        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation, withQuery:  "?order=updatedAt")
+        return Client.sharedInstance().doAllTasks(url: url, task: "GET", jsonBody: "", truncatePrefix: 0, completionHandlerForAllTasks:  completion)
         
+    }
+    
+    func getLocations(completed: @escaping () -> ()) {
+        locations.removeAll()
+        downloadJSON({ (result, error) in
+            if error != nil {
+                print(error?.localizedDescription)
+            }
+            let locationsDict = result?["results"] as! [[String : Any]]
+            for item in locationsDict {
+                let newLocation = StudentLocation(studentLocation: item)
+                self.locations.append(newLocation)
+            }
+            print(result)
+            completed()
         })
+        
     }
 
     
@@ -132,7 +146,7 @@ class Client: NSObject {
                 print(error)
             } else {
                 let user = results?["user"] as! [String : Any]
-                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0))
+                self.myinfo = StudentLocation.init(objectId: "", uniqueKey: user["key"] as! String, firstName: user["first_name"] as! String, lastName: user["last_name"] as! String, mapString: "", mediaURL: "", latitude: 0, longitude: 0, createdAt: NSDate.init(timeIntervalSinceNow: 0), updatedAt:  NSDate.init(timeIntervalSinceNow: 0))
             }
             print(self.myinfo?.firstName,self.myinfo?.lastName,self.myinfo?.uniqueKey)
             
@@ -178,7 +192,40 @@ class Client: NSObject {
             
             /* GUARD: Did we get a successful 2XX response? */
             guard let statusCode = (response as? HTTPURLResponse)?.statusCode, statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx! Response: \(response as? HTTPURLResponse)?.statusCode)")
+                let code = (response as? HTTPURLResponse)?.statusCode as! Int
+                if code >= 300 && code <= 399 {
+                    sendError("Your request was redirected. Error Code: \(code)")
+                } else if code >= 400 && code <= 499 {
+                    if code == 400 {
+                        sendError("Bad Request. Error Code: \(code)")
+                    } else if code == 401 {
+                        sendError("Invalid Credentials. Error Code: \(code)")
+                    } else if code == 403 {
+                        sendError("FORBIDDEN: Check Your Credentials. Error Code: \(code)")
+                    } else if code == 404 {
+                        sendError("Not Found. Error Code: \(code)")
+                    } else {
+                        sendError("Client Error: \(code)")
+                    }
+                } else if code >= 500 && code <= 599 {
+                    if code == 500 {
+                        sendError("Internal Server Error: \(code)")
+                    } else if code == 501 {
+                        sendError("Not Implemented. Error Code: \(code)")
+                    } else if code == 502 {
+                        sendError("Bad Gateway. Error Code: \(code)")
+                    } else if code == 503 {
+                        sendError("Service Unavailable. Error Code: \(code)")
+                    } else if code == 504 {
+                        sendError("Gateway Timeout. Error Code: \(code)")
+                    } else {
+                        sendError("Server error: \(code)")
+                    }
+                }
+
+
+                
+                sendError("Your request returned a status code other than 2xx! Response: \(code)")
                 
                 return
             }

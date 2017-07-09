@@ -191,6 +191,12 @@
                                                         </connections>
                                                     </barButtonItem>
                                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="7Ub-5T-drp"/>
+                                                    <barButtonItem systemItem="cancel" id="MNP-Ku-dak">
+                                                        <connections>
+                                                            <action selector="doCancelButton:" destination="hV0-00-n3j" id="KHI-ld-H1t"/>
+                                                        </connections>
+                                                    </barButtonItem>
+                                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="1Gf-xx-x4m"/>
                                                     <barButtonItem title="Share Location" id="P4Q-NE-dCT">
                                                         <connections>
                                                             <action selector="doDoneButton:" destination="hV0-00-n3j" id="j1n-ef-Eaz"/>
@@ -239,6 +245,7 @@
                     </view>
                     <connections>
                         <outlet property="findLocationView" destination="a1j-pP-3ft" id="1BJ-lW-Uew"/>
+                        <outlet property="locationLabel" destination="Fm7-RT-WBf" id="oHz-a4-61q"/>
                         <outlet property="mapView" destination="wk6-ob-pCg" id="m4b-Ak-CPi"/>
                         <outlet property="searchByTextButton" destination="Obj-Eb-HNV" id="Ata-Ao-nVG"/>
                         <outlet property="shareButton" destination="P4Q-NE-dCT" id="kf0-G2-ZAu"/>
