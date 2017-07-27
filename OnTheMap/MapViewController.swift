@@ -37,25 +37,26 @@ class MapViewController: UIViewController, MKMapViewDelegate {
        
          for location in locations {
             
-            let lat = CLLocationDegrees(location.latitude as! Double)
-            let long = CLLocationDegrees(location.longitude as! Double)
+            if let latitude = location.latitude as! Double?, let longitude = location.longitude as! Double? {
+                let lat = CLLocationDegrees(latitude)
+                let long = CLLocationDegrees(longitude)
             
-            // The lat and long are used to create a CLLocationCoordinates2D instance.
-            let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
+              // The lat and long are used to create a CLLocationCoordinates2D instance.
+                let coordinate = CLLocationCoordinate2D(latitude: lat, longitude: long)
             
-            if let first = location.firstName as? String, let last = location.lastName as? String, let mediaURL = location.mediaURL as? String {
-                // Here we create the annotation and set its coordiate, title, and subtitle properties
-                let annotation = MKPointAnnotation()
-                annotation.coordinate = coordinate
-                annotation.title = "\(first) \(last)"
-                annotation.subtitle = mediaURL
+                if let first = location.firstName as? String, let last = location.lastName as? String, let mediaURL = location.mediaURL as? String {
+                    // Here we create the annotation and set its coordiate, title, and subtitle properties
+                    let annotation = MKPointAnnotation()
+                    annotation.coordinate = coordinate
+                    annotation.title = "\(first) \(last)"
+                    annotation.subtitle = mediaURL
                 
-                // Finally we place the annotation in an array of annotations.
-                annotations.append(annotation)
-            } else {
-                print("Error unwrapping values")
+                    // Finally we place the annotation in an array of annotations.
+                    annotations.append(annotation)
+                } else {
+                    print("Error unwrapping values")
+                }
             }
-            
         }
         self.mapView.addAnnotations(annotations)
     }
