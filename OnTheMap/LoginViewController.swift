@@ -79,18 +79,18 @@ class LoginViewController: UIViewController, UITextFieldDelegate, LoginButtonDel
             
             Client.sharedInstance().doAllTasks(url: urlUdacity, task: "POST", jsonBody: jsonBody, truncatePrefix: 5, completionHandlerForAllTasks: { (result, error) in
             
-                if error != nil {
+                if let error = error {
                     print(error)
-                    
                     DispatchQueue.main.async {
-                        self.loginFailed("Facebook Login Failed")
+                        self.loginFailed(error.localizedDescription)
                     }
+                } else {
+                
+                    self.getKey(result as! [String : AnyObject])
+                    Client.sharedInstance().getMyUser()
+                    
+                    self.doSegue()
                 }
-                self.getKey(result as! [String : AnyObject])
-                Client.sharedInstance().getMyUser()
-                
-                self.doSegue()
-                
             })
         }
 
