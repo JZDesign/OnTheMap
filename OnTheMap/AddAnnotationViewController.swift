@@ -114,7 +114,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
         // creates array of user pins for replacement or deletion
         
         
-        //let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation as! String, withQuery: "?where={\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\"}")
+    
        
         let url = URL(string:"https://parse.udacity.com/parse/classes/StudentLocation?where=%7B%22uniqueKey%22%3A%22\(Client.Constants.UserSession.accountKey )%22%7D")
         
@@ -176,10 +176,7 @@ class AddAnnotationViewController: UIViewController, MKMapViewDelegate, CLLocati
     func doReplacePin(_ jsonBody: String){
         // Call PUT HTTP to replace location object already in place
         
-        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation + "/" + StudentDataSource.sharedInstance.userPins[0].objectId! as! String, withQuery:  "")
-        print(url)
-        //let jsonBody2 = "{\"uniqueKey\": \"\(Client.Constants.UserSession.accountKey)\", \"firstName\": \"\(StudentDataSource.sharedInstance.myinfo?.firstName as! String)\", \"lastName\": \"\(StudentDataSource.sharedInstance.myinfo?.lastName  as! String)\",\"mapString\": \"\(StudentDataSource.sharedInstance.myinfo?.mapString  as! String)\", \"mediaURL\": \"\(StudentDataSource.sharedInstance.myinfo?.mediaURL  as! String)\",\"latitude\": \(StudentDataSource.sharedInstance.myinfo?.latitude as! Double), \"longitude\": \(StudentDataSource.sharedInstance.myinfo?.longitude as! Double)}"
-        
+        let url = Client.URLFromParameters(Client.Constants.Parse.Scheme, Client.Constants.Parse.Host, Client.Constants.Parse.Path, withPathExtension: Client.Constants.Methods.StudentLocation + "/" + StudentDataSource.sharedInstance.userPins[0].objectId! as! String, withQuery:  "")        
         
         Client.sharedInstance().doAllTasks(url: url, task: "PUT", jsonBody: jsonBody, truncatePrefix: 0, completionHandlerForAllTasks:  { (result, error) in
             if error != nil {

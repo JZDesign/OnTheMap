@@ -17,19 +17,13 @@ class Client: NSObject {
     // shared session
     var session = URLSession.shared
     
-    // configuration object
-    //var config = TMDBConfig()
-    
+
     // authentication state
     var requestToken: String? = nil
     var sessionID : String? = nil
     var userID : Int? = nil
     
-    // locations
-    //var locations = [StudentLocation]()
-    //var myinfo: StudentLocation? = nil
-    //var userPins = [StudentLocation]()
-    
+
     // MARK: Initializers
     
     override init() {
@@ -69,7 +63,6 @@ class Client: NSObject {
     
     // MARK: MAKE JSON
     
-    //tried to find a way to abstract the json building process but had some issues. Will attempt again later.
     func makeJSON(_ jsonBody: [String:AnyObject]) -> String {
         
         let json = try? JSONSerialization.data(withJSONObject: jsonBody, options: .prettyPrinted)
@@ -179,9 +172,11 @@ class Client: NSObject {
         
     }
     
-    // https://stackoverflow.com/questions/41628425/how-to-convert-2017-01-09t110000-000z-into-date-in-swift-3
     
-    //func getDate(date: String, location: CLLocationCoordinate2D) -> NSDate {
+    // modified from
+    // https://stackoverflow.com/questions/41628425/how-to-convert-2017-01-09t110000-000z-into-date-in-swift-3
+    // vvvvv
+    
     func getDate(date: String) -> NSDate {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale(identifier: "en_US_POSIX")
